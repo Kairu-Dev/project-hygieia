@@ -20,6 +20,10 @@ reviews:
       - develop
     drafts: false
 
+  # FIX #1: Add path_filters to explicitly exclude .env files
+  path_filters:
+    - "!**/.env*"
+
   path_instructions:
     # All TypeScript files
     - path: "**/*.ts"
@@ -123,7 +127,8 @@ reviews:
         - Nurse: read access, appointment management
         - Patient: own records only
 
-        NOTE: Clerk had recent security issues - validate thoroughly
+        # FIX #2: Removed vague "Clerk had recent security issues" comment
+        # Security best practices should be followed regardless
 
     # Proxy/Middleware (Next.js 16+)
     - path: "**/{proxy,middleware}.ts"
@@ -206,15 +211,6 @@ reviews:
         - Medical data should use Server Components/React Query
         - No persistence of medical records
 
-    # Environment files
-    - path: "**/.env*"
-      instructions: |
-        CRITICAL:
-        - This file MUST be in .gitignore
-        - Never commit secrets
-        - Use .env.example for documentation
-        - Production secrets in Vercel environment variables
-
     # Next.js config
     - path: "**/next.config.*"
       instructions: |
@@ -264,7 +260,7 @@ reviews:
         - Proper session validation
         - Metadata not exposed to client
         - Webhook signature validation
-        - Given recent security issues, validate all auth flows
+        - Follow authentication best practices
 
     # Sentry configuration
     - path: "**/*sentry*"
@@ -276,12 +272,17 @@ reviews:
         - Proper sampling rates
         - Never send passwords, tokens, medical records
 
+  # FIX #3: Added security-focused tools for PHI/HIPAA compliance
   tools:
     github-checks:
       enabled: true
     biome:
       enabled: true
     eslint:
+      enabled: true
+    gitleaks:  # Detects hardcoded secrets
+      enabled: true
+    semgrep:  # Security vulnerability patterns
       enabled: true
 
 chat:
