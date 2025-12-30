@@ -24,6 +24,23 @@ reviews:
   path_filters:
     - "!**/.env*"
 
+  # Pre-merge checks for quality gates
+  pre_merge_checks:
+    title:
+      mode: warning
+      requirements: "Use conventional commit format: type(scope): description"
+    description:
+      mode: warning
+    custom_checks:
+      - name: "PHI Audit"
+        mode: warning
+        instructions: |
+          Verify that no PHI is exposed in:
+          - Console logs or debug statements
+          - Error messages or stack traces
+          - URLs or query parameters
+          - Client-side state or local storage
+
   path_instructions:
     # All TypeScript files
     - path: "**/*.ts"
@@ -280,9 +297,9 @@ reviews:
       enabled: true
     eslint:
       enabled: true
-    gitleaks:  # Detects hardcoded secrets
+    gitleaks: # Detects hardcoded secrets
       enabled: true
-    semgrep:  # Security vulnerability patterns
+    semgrep: # Security vulnerability patterns
       enabled: true
 
 chat:
