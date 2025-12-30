@@ -1,7 +1,296 @@
+# CodeRabbit Configuration for Hygieia Healthcare System
+# Configured for CURRENT messy structure - will update after refactor
+# Stack: Next.js 15, Prisma, Neon, Clerk, Philippines healthcare
+
+language: en-US
+early_access: false
+enable_free_tier: true
+
 reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
   review_status: true
+  collapse_walkthrough: false
+
   auto_review:
     enabled: true
     base_branches:
       - main
       - develop
+    drafts: false
+
+  path_instructions:
+    # All TypeScript files
+    - path: "**/*.ts"
+      instructions: |
+        STRICT REQUIREMENTS:
+        - NO 'any' types - use proper TypeScript types
+        - All functions must have explicit return types
+        - Validate all external inputs with Zod schemas
+        - Proper error handling with try-catch blocks
+        - Never log sensitive data (patient info, passwords, tokens)
+        - Check for hardcoded credentials or API keys
+        - Validate proper null/undefined checks
+
+        SECURITY:
+        - Input sanitization before database queries
+        - Check for SQL injection risks even with Prisma
+        - Validate authentication before data access
+        - No PHI in error messages or logs
+
+    # All React/TSX components
+    - path: "**/*.tsx"
+      instructions: |
+        REQUIREMENTS:
+        - Client components must have 'use client' directive
+        - Server components by default
+        - Validate all form inputs
+        - Check for XSS vulnerabilities (avoid dangerouslySetInnerHTML)
+        - No sensitive patient data in client-side state or URLs
+        - Proper loading states for async data
+        - Error boundaries for graceful failures
+
+        HEALTHCARE:
+        - Patient data must not be exposed in browser console
+        - Medical forms need proper validation
+        - Data masking for sensitive fields
+        - HIPAA-aware error messages
+
+    # API Routes (in /api folder)
+    - path: "**/api/**/*.ts"
+      instructions: |
+        CRITICAL SECURITY:
+        - MUST validate Clerk authentication on every route
+        - MUST check user permissions/roles before data access
+        - MUST use Zod for input validation
+        - MUST sanitize all user inputs
+        - MUST use proper HTTP status codes
+        - MUST handle errors without exposing PHI
+        - MUST log patient data access for audit trail
+
+        DATABASE:
+        - Use Prisma parameterized queries only
+        - Check for N+1 query problems
+        - Implement pagination for large datasets
+        - Proper transaction handling
+
+        COMPLIANCE:
+        - Philippine DPA: validate consent, data minimization
+        - HIPAA: proper access controls, audit trails
+
+    # Server Actions (in /actions folder)
+    - path: "**/actions/**"
+      instructions: |
+        REQUIREMENTS:
+        - MUST have 'use server' directive
+        - MUST validate Clerk authentication
+        - MUST check role-based permissions
+        - MUST use Zod for input validation
+        - MUST handle errors without exposing PHI
+        - MUST use try-catch blocks
+        - MUST revalidate paths after mutations
+
+        SECURITY:
+        - No sensitive data returned to client
+        - Audit logging for critical actions
+        - Rate limiting considerations
+
+    # Prisma Schema
+    - path: "**/prisma/schema.prisma"
+      instructions: |
+        DATABASE BEST PRACTICES:
+        - Index frequently queried fields (patientId, doctorId, date)
+        - Proper foreign key relationships
+        - Careful with cascading deletes (data loss risk)
+        - Audit fields: createdAt, updatedAt required
+        - Consider soft deletes: deletedAt for patient records
+        - Proper enum types for status fields
+        - Unique constraints where needed
+
+    # Authentication files
+    - path: "**/*auth*"
+      instructions: |
+        CRITICAL SECURITY:
+        - Verify proper Clerk session validation
+        - Check role-based access control implementation
+        - Validate proper logout/session clearing
+        - No session hijacking vulnerabilities
+
+        ROLES:
+        - Admin: full access
+        - Doctor: assigned patients only
+        - Nurse: read access, appointment management
+        - Patient: own records only
+
+        NOTE: Clerk had recent security issues - validate thoroughly
+
+    # Proxy/Middleware (Next.js 16+)
+    - path: "**/{proxy,middleware}.ts"
+      instructions: |
+        REQUIREMENTS:
+        - Clerk authentication configured
+        - Protected routes require authentication
+        - Role-based route protection
+        - Rate limiting for API routes
+
+        SECURITY HEADERS:
+        - X-Frame-Options: DENY
+        - X-Content-Type-Options: nosniff
+        - Referrer-Policy: strict-origin-when-cross-origin
+        - Permissions-Policy restrictions
+
+    # Database utilities (lib/db.ts, lib/prisma.ts)
+    - path: "**/lib/{db,prisma}*"
+      instructions: |
+        DATABASE CONNECTION:
+        - Use Prisma singleton pattern
+        - Proper connection pooling for Neon
+        - Error handling for all queries
+        - No raw SQL queries
+        - Type safety enforcement
+        - Never log query data (may contain PHI)
+
+    # Services layer (utils/services/)
+    - path: "**/utils/services/**"
+      instructions: |
+        SERVICE LAYER:
+        - Validate all inputs
+        - Proper error handling without PHI exposure
+        - Type safety
+        - Business logic separation from API layer
+        - No direct database access without proper validation
+
+    # Validation schemas (lib/validation.ts)
+    - path: "**/{lib,utils}/validation*"
+      instructions: |
+        VALIDATION:
+        - Use Zod for all schemas
+        - Comprehensive validation rules
+        - Proper error messages (no PHI)
+        - Validate all edge cases
+        - Medical data validation (dates, amounts, etc)
+
+    # Email templates
+    - path: "**/emails/**"
+      instructions: |
+        PRIVACY:
+        - NO PHI in email subject lines
+        - Generic appointment reminders only
+        - No diagnosis or treatment details in emails
+        - Secure links only (HTTPS)
+        - Verify consent before sending
+        - Proper unsubscribe mechanism
+
+    # Payment processing
+    - path: "**/*payment*"
+      instructions: |
+        PAYMENT SECURITY:
+        - PayMongo integration must use test mode in dev
+        - Production keys in environment variables only
+        - Validate webhook signatures
+        - Amounts must be positive numbers
+        - Currency validation (PHP)
+        - Prevent duplicate charges
+        - Log all transactions
+        - No card details in logs
+
+    # Zustand stores
+    - path: "**/*store*"
+      instructions: |
+        STATE MANAGEMENT:
+        - NEVER store sensitive patient data in Zustand
+        - NO PHI in global state
+        - Use for UI state only (theme, sidebar, modals)
+        - Clear state on logout
+        - Medical data should use Server Components/React Query
+        - No persistence of medical records
+
+    # Environment files
+    - path: "**/.env*"
+      instructions: |
+        CRITICAL:
+        - This file MUST be in .gitignore
+        - Never commit secrets
+        - Use .env.example for documentation
+        - Production secrets in Vercel environment variables
+
+    # Next.js config
+    - path: "**/next.config.*"
+      instructions: |
+        SECURITY:
+        - Set poweredByHeader: false
+        - Configure security headers
+        - Proper CSP configuration
+        - Image domains whitelist
+        - ServerActions configuration
+
+    # Package.json
+    - path: "**/package.json"
+      instructions: |
+        DEPENDENCIES:
+        - Check for known vulnerabilities
+        - Suggest critical security updates
+        - Verify Clerk is latest version (security patches)
+        - Prisma should be up-to-date
+        - Check for deprecated packages
+
+    # Hooks (hooks/ folder)
+    - path: "**/hooks/**"
+      instructions: |
+        REACT HOOKS:
+        - Proper dependency arrays
+        - No infinite loops
+        - Clean up side effects
+        - Type safety
+        - No PHI in hook state
+
+    # Components (all components folders)
+    - path: "**/components/**"
+      instructions: |
+        COMPONENTS:
+        - Proper prop types
+        - Accessibility checks (WCAG 2.1 AA)
+        - No hardcoded data
+        - Proper error boundaries
+        - Loading states
+        - Mobile responsive
+
+    # Clerk-specific files
+    - path: "**/*clerk*"
+      instructions: |
+        CLERK SECURITY:
+        - API keys server-side only
+        - Proper session validation
+        - Metadata not exposed to client
+        - Webhook signature validation
+        - Given recent security issues, validate all auth flows
+
+    # Sentry configuration
+    - path: "**/*sentry*"
+      instructions: |
+        ERROR MONITORING:
+        - Configure to exclude PHI from error reports
+        - Scrub sensitive data before sending
+        - Use beforeSend to filter patient info
+        - Proper sampling rates
+        - Never send passwords, tokens, medical records
+
+  tools:
+    github-checks:
+      enabled: true
+    biome:
+      enabled: true
+    eslint:
+      enabled: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: auto
+
+tone_instructions: "Philippine healthcare system. HIPAA and DPA compliant. Strict security, flag PHI leaks, validate auth, check vulnerabilities."
