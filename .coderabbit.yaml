@@ -35,11 +35,13 @@ reviews:
       - name: "PHI Audit"
         mode: error
         instructions: |
-          Verify that no PHI is exposed in:
+          This check FAILS if any of the following contain PHI (patient names, medical record numbers, diagnoses, etc):
           - Console logs or debug statements
           - Error messages or stack traces
           - URLs or query parameters
           - Client-side state or local storage
+
+          This check PASSES if code changes contain no PHI in the above locations.
 
   path_instructions:
     # All TypeScript files
@@ -300,6 +302,8 @@ reviews:
     gitleaks: # Detects hardcoded secrets
       enabled: true
     semgrep: # Security vulnerability patterns
+      enabled: true
+    prismaLint: # Prisma schema validation
       enabled: true
 
 chat:
