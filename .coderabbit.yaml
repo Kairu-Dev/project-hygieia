@@ -33,7 +33,7 @@ reviews:
       mode: warning
     custom_checks:
       - name: "PHI Audit"
-        mode: warning
+        mode: error
         instructions: |
           Verify that no PHI is exposed in:
           - Console logs or debug statements
