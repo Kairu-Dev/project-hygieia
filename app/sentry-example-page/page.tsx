@@ -5,7 +5,7 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 
 class SentryExampleFrontendError extends Error {
-  constructor(message: string | undefined) {
+  constructor(message: string = "Sentry example error") {
     super(message);
     this.name = "SentryExampleFrontendError";
   }
@@ -91,6 +91,36 @@ export default function Page() {
           disabled={!isConnected}
         >
           <span>Throw Sample Error</span>
+        </button>
+
+        <button
+          type="button"
+          style={{ marginTop: '12px', backgroundColor: '#E53E3E' }}
+          onClick={() => {
+            Sentry.captureException(new Error("TEST: PII Scrubbing (Should not see email/IP)"), {
+              user: {
+                email: "sensitive@example.com",
+                ip_address: "192.168.1.1",
+                username: "test_user_123"
+              }
+            });
+            alert("Sent error with fake PII. Check Sentry to verify email/IP were removed.");
+          }}
+          disabled={!isConnected}
+        >
+          <span>Test PII Scrubbing</span>
+        </button>
+
+        <button
+          type="button"
+          style={{ marginTop: '12px', backgroundColor: '#D69E2E' }}
+          onClick={() => {
+            Sentry.captureMessage("TEST: PHI Redaction - Patient Diagnosis: Acute Hypertension. MRN: 998877");
+            alert("Sent message with PHI keywords. Check Sentry to verify keywords were redacted.");
+          }}
+          disabled={!isConnected}
+        >
+          <span>Test PHI Redaction</span>
         </button>
 
         {hasSentError ? (

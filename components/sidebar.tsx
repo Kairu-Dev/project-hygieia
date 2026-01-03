@@ -22,110 +22,112 @@ const SidebarIcon = ({ icon: Icon }: { icon: LucideIcon }) => {
   return <Icon className="size-5 text-gray-300 group-hover:text-white transition-colors flex-shrink-0" />;
 };
 
+const SIDEBAR_LINKS = [
+  {
+    label: "MENU",
+    links: [
+      {
+        name: "Dashboard",
+        href: "/",
+        access: ACCESS_LEVELS_ALL,
+        icon: LayoutDashboard,
+      },
+      {
+        name: "Profile",
+        href: "/patient/self",
+        access: ["patient"],
+        icon: User,
+      },
+    ],
+  },
+  {
+    label: "Manage",
+    links: [
+      {
+        name: "Users",
+        href: "/record/users",
+        access: ["admin"],
+        icon: Users,
+      },
+      {
+        name: "Doctors",
+        href: "/record/doctors",
+        access: ["admin"],
+        icon: User,
+      },
+      {
+        name: "Staffs",
+        href: "/record/staffs",
+        access: ["admin", "doctor"],
+        icon: UserRound,
+      },
+      {
+        name: "Patients",
+        href: "/record/patients",
+        access: ["admin", "doctor", "nurse"],
+        icon: UsersRound,
+      },
+      {
+        name: "Appointments",
+        href: "/record/appointments",
+        access: ["admin", "doctor", "nurse"],
+        icon: ListOrdered,
+      },
+      {
+        name: "Medical Records",
+        href: "/record/medical-records",
+        access: ["admin", "doctor", "nurse"],
+        icon: SquareActivity,
+      },
+      {
+        name: "Billing Overview",
+        href: "/record/billing",
+        access: ["admin", "doctor"],
+        icon: Receipt,
+      },
+      {
+        name: "Appointments",
+        href: "/record/appointments",
+        access: ["patient"],
+        icon: ListOrdered,
+      },
+      {
+        name: "Records",
+        href: "/patient/self",
+        access: ["patient"],
+        icon: List,
+      },
+      {
+        name: "Billing",
+        href: "/record/billing/patient",
+        access: ["patient"],
+        icon: Receipt,
+      },
+      {
+        name: "Referrals",
+        href: "/doctor/referral-management",
+        access: ["doctor"],
+        icon: Receipt,
+      },
+    ],
+  },
+  {
+    label: "System",
+    links: [
+      {
+        name: "Settings",
+        href: "/system-settings",
+        access: ["admin", "doctor"],
+        icon: Settings,
+      },
+    ],
+  },
+];
+
 export const sidebar = async () => {
   const role = await getRole();
 
-  const SIDEBAR_LINKS = [
-    {
-      label: "MENU",
-      links: [
-        {
-          name: "Dashboard",
-          href: "/",
-          access: ACCESS_LEVELS_ALL,
-          icon: LayoutDashboard,
-        },
-        {
-          name: "Profile",
-          href: "/patient/self",
-          access: ["patient"],
-          icon: User,
-        },
-      ],
-    },
-    {
-      label: "Manage",
-      links: [
-        {
-          name: "Users",
-          href: "/record/users",
-          access: ["admin"],
-          icon: Users,
-        },
-        {
-          name: "Doctors",
-          href: "/record/doctors",
-          access: ["admin"],
-          icon: User,
-        },
-        {
-          name: "Staffs",
-          href: "/record/staffs",
-          access: ["admin", "doctor"],
-          icon: UserRound,
-        },
-        {
-          name: "Patients",
-          href: "/record/patients",
-          access: ["admin", "doctor", "nurse"],
-          icon: UsersRound,
-        },
-        {
-          name: "Appointments",
-          href: "/record/appointments",
-          access: ["admin", "doctor", "nurse"],
-          icon: ListOrdered,
-        },
-        {
-          name: "Medical Records",
-          href: "/record/medical-records",
-          access: ["admin", "doctor", "nurse"],
-          icon: SquareActivity,
-        },
-        {
-          name: "Billing Overview",
-          href: "/record/billing",
-          access: ["admin", "doctor"],
-          icon: Receipt,
-        },
-        {
-          name: "Appointments",
-          href: "/record/appointments",
-          access: ["patient"],
-          icon: ListOrdered,
-        },
-        {
-          name: "Records",
-          href: "/patient/self",
-          access: ["patient"],
-          icon: List,
-        },
-        {
-          name: "Billing",
-          href: "/record/billing/patient",
-          access: ["patient"],
-          icon: Receipt,
-        },
-        {
-          name: "Referrals",
-          href: "/doctor/referral-management",
-          access: ["doctor"],
-          icon: Receipt,
-        },
-      ],
-    },
-    {
-      label: "System",
-      links: [
-        {
-          name: "Settings",
-          href: "/system-settings",
-          access: ["admin", "doctor"],
-          icon: Settings,
-        },
-      ],
-    },
-  ];
+  /* SIDEBAR_LINKS moved to module scope */
 
   return (
     <div className="sidebar w-full flex flex-col justify-between bg-gray-950 border-r border-gray-800 min-h-full shadow-xl">
@@ -145,7 +147,7 @@ export const sidebar = async () => {
       {/* Menu Items */}
       <ScrollArea className="flex-1 py-2">
         <div className="px-2 lg:px-3 text-sm space-y-4">
-          {SIDEBAR_LINKS.map((el) => {
+          {SIDEBAR_LINKS.map((el: { label: string; links: any[] }) => {
             // Check if this section has any links the current user can access
             const hasAccessibleLinks = el.links.some(link =>
               link.access.includes(role.toLowerCase())
@@ -164,7 +166,7 @@ export const sidebar = async () => {
                 </div>
 
                 <div className="space-y-1">
-                  {el.links.map((link) => {
+                  {el.links.map((link: any) => {
                     if (link.access.includes(role.toLowerCase())) {
                       return (
                         <TooltipProvider key={link.name} delayDuration={300}>

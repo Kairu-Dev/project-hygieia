@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -98,31 +98,7 @@ const getUserTimezoneInfo = () => {
   };
 };
 
-const _unused_generateDynamicTimes = (startTime: string, endTime: string, intervalMinutes: number = 30) => {
-  const times = [];
 
-  const [startHour, startMin] = startTime.split(':').map(Number);
-  const [endHour, endMin] = endTime.split(':').map(Number);
-
-  const startMinutes = startHour * 60 + startMin;
-  const endMinutes = endHour * 60 + endMin;
-
-  for (let minutes = startMinutes; minutes < endMinutes; minutes += intervalMinutes) {
-    const hour = Math.floor(minutes / 60);
-    const min = minutes % 60;
-
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    const timeString = `${displayHour}:${min.toString().padStart(2, '0')} ${period}`;
-
-    times.push({
-      label: timeString,
-      value: timeString
-    });
-  }
-
-  return times;
-};
 
 // Custom Calendar Date Picker Component
 const CalendarDatePicker = ({
@@ -424,13 +400,14 @@ export const NurseBookAppointment = ({
     }
 
     const currentTime = form.getValues("time");
-    if (currentTime) {
-      setTimeout(() => {
-        const isTimeStillValid = availableTimes.some(time => time.value === currentTime);
-        if (!isTimeStillValid) {
-          form.setValue("time", "");
-        }
-      }, 50);
+    if (currentTime && availableTimes.length > 0) {
+      const isTimeStillValid = availableTimes.some(time => time.value === currentTime);
+      if (!isTimeStillValid) {
+        form.setValue("time", "");
+      }
+    } else if (currentTime && availableTimes.length === 0 && !loadingWorkingDays) {
+      // If no times available but time is selected, clear it
+      form.setValue("time", "");
     }
   }, [selectedDate, selectedDoctorId, doctorWorkingDays, form]);
 

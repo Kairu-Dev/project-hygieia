@@ -1,15 +1,17 @@
 // app/record/appointments/[id]/page.tsx
 // or app/billing/page.tsx (depending on your actual file path)
 // New Version
-/* eslint-disable */
+
 import ClientPaymentButton from '@/components/billing-actions';
 import { ProfileImage } from '@/components/profile-image';
+import { cn, maskID, maskName, maskPhone } from '@/lib/utils';
 import { getPaymentByAppointmentId, getPaymentById } from '@/utils/services/payment-fetch';
 import { Patient, Payment, PaymentMethod, PaymentStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { ArrowLeft, CreditCard, DollarSign, PercentIcon, Receipt, User } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { auth } from "@clerk/nextjs/server";
 import React from 'react';
 
 interface PaymentDetailsProps {
@@ -76,6 +78,12 @@ export default async function PaymentDetailsPage(props: PaymentDetailsProps) {
   const { id } = params;
   const category = searchParams?.cat || 'billing';
 
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect('/sign-in');
+  }
+
   if (!id) {
     notFound();
   }
@@ -137,13 +145,13 @@ export default async function PaymentDetailsPage(props: PaymentDetailsProps) {
               <div className="flex items-center gap-4 mb-4">
                 <ProfileImage
                   url={patient.img || ""}
-                  name={fullName}
+                  name={maskName(fullName)}
                   bgColor={patient.colorCode || "#10b981"}
                   textClassName="text-black"
                 />
 
                 <div>
-                  <h3 className="uppercase font-mono tracking-wider text-emerald-200">{fullName}</h3>
+                  <h3 className="uppercase font-mono tracking-wider text-emerald-200">{maskName(fullName)}</h3>
                   <span className="text-sm capitalize text-emerald-300/80">{patient.gender}</span>
                 </div>
               </div>
@@ -151,11 +159,11 @@ export default async function PaymentDetailsPage(props: PaymentDetailsProps) {
               <div className="grid grid-cols-1 gap-3">
                 <div className="flex items-center gap-2 text-emerald-200">
                   <User size={16} className="text-emerald-400" />
-                  <span className="text-sm">ID: {patient.id}</span>
+                  <span className="text-sm">ID: {maskID(patient.id.toString())}</span>
                 </div>
                 <div className="flex items-center gap-2 text-emerald-200">
                   <Receipt size={16} className="text-emerald-400" />
-                  <span className="text-sm">Contact: {patient.phone}</span>
+                  <span className="text-sm">Contact: {maskPhone(patient.phone)}</span>
                 </div>
               </div>
             </div>

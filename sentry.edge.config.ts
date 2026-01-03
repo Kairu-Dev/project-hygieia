@@ -14,7 +14,24 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  // Disable PII to maintain HIPAA/DPA compliance
+  sendDefaultPii: false,
+
+  // Use beforeSend to scrub PHI from error reports
+  beforeSend(event) {
+    // Remove user email, IP, and other PII
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+      delete event.user.username;
+    }
+    // Scrub PHI from breadcrumbs and context
+    if (event.breadcrumbs) {
+      event.breadcrumbs = event.breadcrumbs.map(breadcrumb => ({
+        ...breadcrumb,
+        message: breadcrumb.message?.replace(/patient|mrn|diagnosis/gi, '[REDACTED]')
+      }));
+    }
+    return event;
+  },
 });

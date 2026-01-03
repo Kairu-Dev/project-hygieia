@@ -23,7 +23,14 @@ const PatientProfilePage = async (props: ParamsProps) => {
 
     if (patientId === "self") {
         const { userId } = await auth();
-        id = userId!;
+        if (!userId) {
+            return (
+                <div className="flex items-center justify-center min-h-screen bg-black-800 text-cyan-500">
+                    <p className="text-xl font-semibold">Authentication Required</p>
+                </div>
+            );
+        }
+        id = userId;
 
     } else id = patientId;
 

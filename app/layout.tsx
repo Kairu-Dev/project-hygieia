@@ -47,7 +47,7 @@ export default function RootLayout({
               </SystemAnalytics>
             </AutoLogoutWrapper>
 
-            <Toaster richColors position='top-center' />
+            <Toaster richColors position='top-right' expand closeButton visibleToasts={4} />
           </ThemeProvider>
         </body>
       </html>

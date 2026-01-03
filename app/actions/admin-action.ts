@@ -6,15 +6,34 @@ import { DoctorSchema, ServicesSchema, StaffSchema, WorkingDaysSchema } from "@/
 import { generateRandomColor } from "@/utils";
 import { checkRole } from "@/utils/roles";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-/* eslint-disable */
 
-export async function createNewDoctor(data: any) {
+
+
+interface CreateDoctorInput {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  specialization: string;
+  license_number: string;
+  type: "FULL" | "PART";
+  department: string;
+  img?: string;
+  password?: string;
+  work_schedule?: Array<{
+    day: string;
+    start_time: string;
+    close_time: string;
+  }>;
+}
+
+export async function createNewDoctor(data: CreateDoctorInput) {
 
   try {
 
     const values = DoctorSchema.safeParse(data);
 
-    const workingDaysValues = WorkingDaysSchema.safeParse(data?.work_schedule);
+    const workingDaysValues = WorkingDaysSchema.safeParse(data.work_schedule);
 
     if (!values.success || !workingDaysValues.success) {
 
@@ -92,9 +111,20 @@ export async function createNewDoctor(data: any) {
 
 }
 
-export async function createNewStaff(data: any) {
+interface CreateStaffInput {
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+  role: "NURSE" | "LAB_TECHNICIAN" | "CASHIER" | "ADMIN";
+  department?: string;
+  license_number?: string;
+  password?: string;
+}
+
+export async function createNewStaff(data: CreateStaffInput) {
   try {
-    console.log("Create staff started with data:", JSON.stringify(data, null, 2));
+
 
     const { userId } = await auth();
     if (!userId) {
@@ -117,14 +147,13 @@ export async function createNewStaff(data: any) {
     }
 
     const validatedValues = values.data;
-    console.log("Validated values:", JSON.stringify(validatedValues, null, 2));
+
 
     // Store the plain password for email before we delete it
     const plainPassword = validatedValues.password;
 
     try {
       const client = await clerkClient();
-      console.log("About to create Clerk user");
 
       const nameParts = validatedValues.name.trim().split(/\s+/);
       const firstName = nameParts[0];
@@ -143,7 +172,7 @@ export async function createNewStaff(data: any) {
         publicMetadata: { role: validatedValues.role.toLowerCase() }, // Keep original for now
       });
 
-      console.log("Clerk user created successfully:", user.id);
+
 
       // Remove password from validated values for database storage
       delete validatedValues["password"];
@@ -163,7 +192,7 @@ export async function createNewStaff(data: any) {
         },
       });
 
-      console.log("Staff created in database");
+
 
       // Get admin information for the email
       const currentUser = await client.users.getUser(userId);
@@ -181,7 +210,6 @@ export async function createNewStaff(data: any) {
       // If no names are available, keep "System Administrator" as default
 
       // Send welcome email to the new staff member
-      console.log("Sending welcome email to staff...");
       try {
         const emailResult = await sendWelcomeStaffEmailAction(
           validatedValues.email,
@@ -199,7 +227,7 @@ export async function createNewStaff(data: any) {
         );
 
         if (emailResult.success) {
-          console.log("Welcome email sent successfully to staff");
+
         } else {
           console.warn("Failed to send welcome email to staff:", emailResult.error);
           // Don't fail the entire operation if email fails
@@ -228,14 +256,28 @@ export async function createNewStaff(data: any) {
   }
 }
 
-export async function addNewService(data: any) {
+interface CreateServiceInput {
+  service_name: string;
+  price: string;
+  description: string;
+}
+
+export async function addNewService(data: CreateServiceInput) {
   try {
     const isValidData = ServicesSchema.safeParse(data);
+
+    if (!isValidData.success) {
+      return {
+        success: false,
+        error: true,
+        msg: "Please provide all required service information",
+      };
+    }
 
     const validatedData = isValidData.data;
 
     await db.services.create({
-      data: { ...validatedData!, price: Number(data.price!) },
+      data: { ...validatedData, price: Number(validatedData.price) },
     });
 
     return {
@@ -244,7 +286,7 @@ export async function addNewService(data: any) {
       msg: `Service added successfully`,
     };
   } catch (error) {
-    console.log(error);
+    console.error("Failed to add service:", error instanceof Error ? error.message : "Unknown error");
     return { success: false, msg: "Internal Server Error" };
   }
 }

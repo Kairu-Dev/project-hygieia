@@ -23,9 +23,34 @@ Sentry.init({
   // Define how likely Replay events are sampled when an error occurs.
   replaysOnErrorSampleRate: 1.0,
 
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+  // Disable PII to maintain HIPAA/DPA compliance
+  sendDefaultPii: false,
+
+  // Use beforeSend to scrub PHI from client error reports
+  beforeSend(event) {
+    // Remove user email, IP, and other PII
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+      delete event.user.username;
+    }
+
+    // Scrub PHI patterns from error messages and stack traces
+    const phiPatterns = /\b(patient|mrn|medical record|diagnosis|prescription|treatment|appointment|doctor|staff)\b/gi;
+
+    if (event.message) {
+      event.message = event.message.replace(phiPatterns, '[REDACTED]');
+    }
+
+    if (event.exception?.values) {
+      event.exception.values = event.exception.values.map(exception => ({
+        ...exception,
+        value: exception.value?.replace(phiPatterns, '[REDACTED]')
+      }));
+    }
+
+    return event;
+  },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

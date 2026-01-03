@@ -326,17 +326,46 @@ export const AppointmentPriorityAnalyzer = ({
 
               <div className="p-4 bg-slate-900/50 border border-slate-800 rounded-lg space-y-4">
                 <div className="flex items-center justify-between gap-4 p-3 bg-slate-800/30 border border-slate-700/50 rounded-md">
-                  <div className="flex items-center gap-3">
-                    <span className="text-slate-200 font-medium">
-                      {doctors.find(d => d.id === result.doctor)?.name || "Available Specialist"}
-                    </span>
-                    {(isAdmin || isDoctor || isNurse) && result.doctor && doctorLoadFactors[result.doctor] !== undefined && (
-                      <Badge variant="outline" className={`text-[10px] h-5 ${doctorLoadFactors[result.doctor] >= 80 ? 'text-red-400 border-red-500/30 bg-red-500/10' :
-                        doctorLoadFactors[result.doctor] >= 50 ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' :
-                          'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
-                        }`}>
-                        {doctorLoadFactors[result.doctor]}% Load
-                      </Badge>
+                  <div className="flex-1">
+                    {!result.doctor ? (
+                      <Select
+                        onValueChange={(doctorId) => {
+                          const selectedDoc = doctors.find(d => d.id === doctorId);
+                          useAnalysisStore.setState(state => ({
+                            result: state.result ? {
+                              ...state.result,
+                              doctor: doctorId,
+                              department: selectedDoc?.department || state.result.department,
+                              override: true
+                            } : null
+                          }));
+                        }}
+                      >
+                        <SelectTrigger className="w-full bg-slate-900 border-amber-500/50 text-amber-500">
+                          <SelectValue placeholder="⚠️ Select a Doctor to Proceed" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-slate-900 border-slate-700 text-slate-300 max-h-[200px]">
+                          {doctors.map((doc) => (
+                            <SelectItem key={doc.id} value={doc.id}>
+                              {doc.name} — {doc.specialization}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-200 font-medium">
+                          {doctors.find(d => d.id === result.doctor)?.name || "Available Specialist"}
+                        </span>
+                        {(isAdmin || isDoctor || isNurse) && result.doctor && doctorLoadFactors[result.doctor] !== undefined && (
+                          <Badge variant="outline" className={`text-[10px] h-5 ${doctorLoadFactors[result.doctor] >= 80 ? 'text-red-400 border-red-500/30 bg-red-500/10' :
+                            doctorLoadFactors[result.doctor] >= 50 ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' :
+                              'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                            }`}>
+                            {doctorLoadFactors[result.doctor]}% Load
+                          </Badge>
+                        )}
+                      </div>
                     )}
                   </div>
                   {(isAdmin || isDoctor || isNurse) ? (
@@ -354,8 +383,17 @@ export const AppointmentPriorityAnalyzer = ({
                       </SelectContent>
                     </Select>
                   ) : (
-                    <Badge variant="secondary" className="bg-slate-800 text-slate-400">
-                      System Assigned
+                    <Badge
+                      variant="secondary"
+                      className={`
+                        ${!result.doctor ? 'bg-amber-900/30 text-amber-400 border-amber-500/30' :
+                          result.override ? 'bg-blue-900/30 text-blue-400 border-blue-500/30' :
+                            'bg-slate-800 text-slate-400'}
+                      `}
+                    >
+                      {!result.doctor ? 'Action Required' :
+                        result.override ? 'Manually Selected' :
+                          'System Assigned'}
                     </Badge>
                   )}
                 </div>

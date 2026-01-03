@@ -56,6 +56,9 @@ interface AnalysisState {
     reset: () => void;
 }
 
+// Timeout reference outside store to persist between renders/actions
+let analysisTimeout: NodeJS.Timeout | null = null;
+
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     // Initial State
     appointmentNote: '',
@@ -73,8 +76,13 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     // Actions
     setNote: (note) => {
         set({ appointmentNote: note });
-        // Debounce analysis trigger could go here, or let the component handle the trigger
-        get().runAnalysis();
+
+        // Debounce analysis to avoid excessive calls during typing (300ms)
+        if (analysisTimeout) clearTimeout(analysisTimeout);
+
+        analysisTimeout = setTimeout(() => {
+            get().runAnalysis();
+        }, 300);
     },
 
     setPatientId: (id) => set({ patientId: id }),
@@ -97,6 +105,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
                 // Map the data to match expected KeywordGroup interface
                 const mappedGroups = groups.map((group: any) => ({
                     ...group,
+                    description: group.description ?? undefined,
                     keywords: group.keywords || [],
                 })) as KeywordGroup[];
 
@@ -252,16 +261,31 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
                     const loadA = doctorLoadFactors[a.id] || 0;
                     const loadB = doctorLoadFactors[b.id] || 0;
                     return loadA - loadB;
-                })[0] || doctors[0]; // Fallback to any doctor if no GPs found
+                })[0];
+
+                if (!selectedDoc && doctors.length > 0) {
+                    set({
+                        toastMessage: {
+                            title: "No Available Doctor",
+                            description: "No General Practitioner found. Please select a doctor manually.",
+                            type: "warning"
+                        }
+                    });
+                }
 
                 set({
                     result: {
                         priority: PriorityLevel.NORMAL,
                         score: 0,
-                        department: 'General Practice', // Force GP department for unrecognized symptoms
+                        department: selectedDoc?.department || 'General Practice',
                         doctor: selectedDoc?.id || '',
                         keywords: [],
-                        reasoning: ['No specific symptoms detected.', 'Routing to General Practice based on availability.'],
+                        reasoning: [
+                            'No specific symptoms detected.',
+                            selectedDoc?.department
+                                ? `Routing to ${selectedDoc.department} based on availability.`
+                                : 'Routing to General Practice based on availability.'
+                        ],
                         override: false
                     },
                     multiGroupResult: null

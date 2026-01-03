@@ -1,6 +1,6 @@
 // components/email-template.tsx
 import React from 'react';
-/* eslint-disable */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import {
   Html,
   Body,
@@ -92,7 +92,7 @@ export const ScheduledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
               Please arrive 15 minutes before your scheduled appointment time. If you need to reschedule or cancel, please contact us at least 24 hours in advance.
             </Text>
 
-            <Button style={styles.button} href="https://medix-final.vercel.app/">
+            <Button style={styles.button} href={process.env.NEXT_PUBLIC_APP_URL || "https://hygieia.vercel.app/"}>
               View Your Appointments
             </Button>
 
@@ -160,7 +160,7 @@ export const CancelledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
               We apologize for any inconvenience this may cause. Please click the button below to reschedule your appointment at a more convenient time.
             </Text>
 
-            <Button style={{ ...styles.button, backgroundColor: '#b91c1c' }} href="https://medix-final.vercel.app/">
+            <Button style={{ ...styles.button, backgroundColor: '#b91c1c' }} href={process.env.NEXT_PUBLIC_APP_URL || "https://hygieia.vercel.app/"}>
               Reschedule Appointment
             </Button>
 
@@ -175,7 +175,7 @@ export const CancelledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
           </Section>
           <Hr style={styles.hr} />
           <Text style={styles.footer}>
-            © {new Date().getFullYear()} Your Medical Clinic. All rights reserved.
+            © {new Date().getFullYear()} HYGIEIA IHMS. All rights reserved.
           </Text>
         </Container>
       </Body>
@@ -299,7 +299,7 @@ export const ReferralEmail: React.FC<ReferralEmailProps> = ({
               <strong>Important:</strong> Please bring this referral number ({referralNumber}) when you visit the specialist, along with your insurance card and any relevant medical records.
             </Text>
 
-            <Button style={styles.button} href="https://medix-final.vercel.app/">
+            <Button style={styles.button} href={process.env.NEXT_PUBLIC_APP_URL || "https://hygieia.vercel.app/"}>
               Schedule Your Appointment
             </Button>
 
@@ -492,7 +492,7 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
               <strong>Important Security Notice:</strong> For your security, please change your password after your first login. You can do this by accessing your profile settings.
             </Text>
 
-            <Button style={styles.button} href="https://medix-final.vercel.app/">
+            <Button style={styles.button} href={process.env.NEXT_PUBLIC_APP_URL || "https://hygieia.vercel.app/"}>
               Access Hygieia System
             </Button>
 
@@ -592,7 +592,7 @@ export const StaffWelcomeEmail: React.FC<StaffWelcomeEmailProps> = ({
               <strong>Login Details:</strong> Please ensure your email account remains secure, as password changes must be requested through your administrator.
             </Text>
 
-            <Button style={{ ...styles.button, backgroundColor: '#059669' }} href="https://medix-final.vercel.app/">
+            <Button style={{ ...styles.button, backgroundColor: '#059669' }} href={process.env.NEXT_PUBLIC_APP_URL || "https://hygieia.vercel.app/"}>
               Access Hygieia System
             </Button>
 
@@ -670,7 +670,7 @@ export const CompletedAppointmentEmail: React.FC<AppointmentEmailProps> = ({
               Please proceed to payment/billing to complete your visit. You can settle your bill at the front desk or through our online payment portal.
             </Text>
 
-            <Button style={styles.button} href="https://medix-final.vercel.app/">
+            <Button style={styles.button} href={process.env.NEXT_PUBLIC_APP_URL || "https://hygieia.vercel.app/"}>
               Proceed to Payment/Billing
             </Button>
 

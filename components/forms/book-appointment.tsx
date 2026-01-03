@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -419,17 +419,19 @@ export const EnhancedBookAppointment = ({
       setAvailableTimes([]);
     }
 
-    // Reset time selection if it's no longer valid
+    // Reset time selection if it's no longer valid is handled in a separate effect now
+  }, [selectedDate, selectedDoctorId, doctorWorkingDays, form]);
+
+  // Separate effect to validate time selection against available times
+  useEffect(() => {
     const currentTime = form.getValues("time");
-    if (currentTime) {
-      setTimeout(() => {
-        const isTimeStillValid = availableTimes.some(time => time.value === currentTime);
-        if (!isTimeStillValid) {
-          form.setValue("time", "");
-        }
-      }, 50);
+    if (currentTime && availableTimes.length > 0) {
+      const isTimeStillValid = availableTimes.some(time => time.value === currentTime);
+      if (!isTimeStillValid) {
+        form.setValue("time", "");
+      }
     }
-  }, [selectedDate, selectedDoctorId, doctorWorkingDays, form]); // Added availableTimes.length to dependencies
+  }, [availableTimes, form]);
 
   // Effect to set form ready state
   useEffect(() => {
@@ -770,30 +772,7 @@ export const EnhancedBookAppointment = ({
                                     const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
                                     const dayOfWeek = dayNames[date.getDay()].toLowerCase();
                                     const workingDay = doctorWorkingDays.find(wd => wd.day.toLowerCase() === dayOfWeek);
-
-                                    if (workingDay) {
-                                      // Generate times using the same logic as before
-                                      const times = [];
-                                      const [startHour, startMin] = workingDay.start_time.split(':').map(Number);
-                                      const [endHour, endMin] = workingDay.close_time.split(':').map(Number);
-                                      const startMinutes = startHour * 60 + startMin;
-                                      const endMinutes = endHour * 60 + endMin;
-
-                                      for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-                                        const hour = Math.floor(minutes / 60);
-                                        const min = minutes % 60;
-                                        const period = hour >= 12 ? 'PM' : 'AM';
-                                        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                                        const timeString = `${displayHour}:${min.toString().padStart(2, '0')} ${period}`;
-
-                                        times.push({
-                                          label: timeString,
-                                          value: timeString
-                                        });
-                                      }
-                                      return times;
-                                    }
-                                    return [];
+                                    return workingDay ? generateDynamicTimes(workingDay.start_time, workingDay.close_time, 30) : [];
                                   } catch (error) {
                                     console.error('Error generating times:', error);
                                     return [];

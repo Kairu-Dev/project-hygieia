@@ -196,9 +196,13 @@ export const analyzeContext = (text: string, matchedKeyword: string, matchPositi
         word.includes(matchedKeyword.toLowerCase().split(' ')[0])
     );
 
+    // Fallback: if not found in expected range, search the entire text
+    const effectiveIndex = keywordIndex >= 0 ? keywordIndex :
+        words.findIndex(word => word.includes(matchedKeyword.toLowerCase().split(' ')[0]));
+
     // Check for negation in surrounding context (3 words before keyword)
-    const contextStart = Math.max(0, keywordIndex - 3);
-    const contextEnd = Math.min(words.length, keywordIndex + 1);
+    const contextStart = Math.max(0, effectiveIndex - 3);
+    const contextEnd = Math.min(words.length, effectiveIndex + 1);
     const contextWords = words.slice(contextStart, contextEnd);
 
     const negation = NEGATION_WORDS.some(neg => contextWords.includes(neg));
