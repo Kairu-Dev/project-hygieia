@@ -12,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, generateDynamicTimes } from "@/lib/utils";
 
 import { AppointmentSchema } from "@/lib/validation";
 import { generateTimes } from "@/utils";
@@ -98,7 +98,7 @@ const getUserTimezoneInfo = () => {
   };
 };
 
-const generateDynamicTimes = (startTime: string, endTime: string, intervalMinutes: number = 30) => {
+const _unused_generateDynamicTimes = (startTime: string, endTime: string, intervalMinutes: number = 30) => {
   const times = [];
 
   const [startHour, startMin] = startTime.split(':').map(Number);
@@ -520,7 +520,7 @@ export const NurseBookAppointment = ({
         toast.success(`Appointment booked successfully for ${patientName}`);
       }
     } catch (error) {
-      console.log(error);
+      console.error('Appointment creation failed:', error instanceof Error ? error.message : 'Unknown error');
       toast.error("Something went wrong. Try again later.");
     } finally {
       setIsSubmitting(false);
@@ -792,39 +792,11 @@ export const NurseBookAppointment = ({
                                 selectedDoctorId={selectedDoctorId}
                                 selectedDate={selectedDate}
                                 availableTimes={doctorWorkingDays.length > 0 && selectedDate ? (() => {
-                                  try {
-                                    const date = new Date(selectedDate);
-                                    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                                    const dayOfWeek = dayNames[date.getDay()].toLowerCase();
-                                    const workingDay = doctorWorkingDays.find(wd => wd.day.toLowerCase() === dayOfWeek);
-
-                                    if (workingDay) {
-                                      // Generate times using the same logic as your fixed version
-                                      const times = [];
-                                      const [startHour, startMin] = workingDay.start_time.split(':').map(Number);
-                                      const [endHour, endMin] = workingDay.close_time.split(':').map(Number);
-                                      const startMinutes = startHour * 60 + startMin;
-                                      const endMinutes = endHour * 60 + endMin;
-
-                                      for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-                                        const hour = Math.floor(minutes / 60);
-                                        const min = minutes % 60;
-                                        const period = hour >= 12 ? 'PM' : 'AM';
-                                        const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-                                        const timeString = `${displayHour}:${min.toString().padStart(2, '0')} ${period}`;
-
-                                        times.push({
-                                          label: timeString,
-                                          value: timeString
-                                        });
-                                      }
-                                      return times;
-                                    }
-                                    return [];
-                                  } catch (error) {
-                                    console.error('Error generating times:', error);
-                                    return [];
-                                  }
+                                  const date = new Date(selectedDate);
+                                  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                                  const dayOfWeek = dayNames[date.getDay()].toLowerCase();
+                                  const workingDay = doctorWorkingDays.find(wd => wd.day.toLowerCase() === dayOfWeek);
+                                  return workingDay ? generateDynamicTimes(workingDay.start_time, workingDay.close_time, 30) : [];
                                 })() : []}
                                 selectedTime={field.value}
                                 onTimeSelect={field.onChange}

@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { AdvancedSettings, DEFAULT_SETTINGS } from '@/components/AdvancedSettings';
-import { PriorityLevel } from '@prisma/client';
+import { Doctor, PriorityLevel } from '@prisma/client';
 import { getKeywordGroups } from '@/lib/keyword-actions';
 import {
     enhancedKeywordMatch,
@@ -32,7 +32,7 @@ interface AnalysisState {
 
     // Data
     keywordGroups: KeywordGroup[];
-    doctors: any[];
+    doctors: Doctor[];
     doctorLoadFactors: Record<string, number>;
 
     // Analysis Output
@@ -47,7 +47,7 @@ interface AnalysisState {
     setNote: (note: string) => void;
     setPatientId: (id: string) => void;
     setSettings: (settings: AdvancedSettings) => void;
-    setDoctors: (doctors: any[]) => void;
+    setDoctors: (doctors: Doctor[]) => void;
     setDoctorLoadFactors: (factors: Record<string, number>) => void;
     setIsCustomOverride: (isOverride: boolean) => void;
     loadKeywordGroups: () => Promise<void>;
@@ -111,14 +111,14 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     runAnalysis: async () => {
         const { appointmentNote, keywordGroups, settings, isCustomOverride, doctorLoadFactors, doctors } = get();
 
-        if (!appointmentNote.trim() || keywordGroups.length === 0 || isCustomOverride) {
+        // Allow analysis to proceed even if keywordGroups is empty (will trigger fallback logic)
+        if (!appointmentNote.trim() || isCustomOverride) {
             return;
         }
 
         set({ isAnalyzing: true });
 
-        // Add small artificial delay to ensure loading state is visible and feels responsive
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Note: Removed artificial delay - loading state shows naturally during async operations
 
         try {
             // 1. Cross-Group Analysis
@@ -215,7 +215,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
                         })[0];
 
                         selectedDoctorId = bestGP.id;
-                        finalDepartment = bestGP.department; // Update dept to match the actual doctor
+                        finalDepartment = bestGP.department || 'General Practice'; // Update dept to match the actual doctor
                         routingReason = `No ${recommendedDept} specialist available. Re-routed to ${bestGP.department} for initial evaluation.`;
                     }
                 }

@@ -10,74 +10,92 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 
 export async function createNewDoctor(data: any) {
 
-    try {
+  try {
 
-        const values = DoctorSchema.safeParse(data);
+    const values = DoctorSchema.safeParse(data);
 
-        const workingDaysValues = WorkingDaysSchema.safeParse(data?.work_schedule);
+    const workingDaysValues = WorkingDaysSchema.safeParse(data?.work_schedule);
 
-        if(!values.success || !workingDaysValues.success) {
+    if (!values.success || !workingDaysValues.success) {
 
-            return {
-                success: false, 
-                errors: true, 
-                message: "Provide all Required Information",
-            };
-        }
-
-        const validatedValues = values.data;
-
-        const workingDayData = workingDaysValues.data!;
-        
-        const client = await clerkClient();
-
-
-
-        const user = await client.users.createUser({
-      emailAddress: [validatedValues.email],
-      password: validatedValues.password,
-      firstName: validatedValues.name.split(" ")[0],
-      lastName: validatedValues.name.split(" ")[1],
-      publicMetadata: { role: "doctor" },
-          });
-          
-
-        delete validatedValues["password"];
-
-        const doctor = await db.doctor.create({
-            data: {
-                ...validatedValues, 
-                id:user.id,
-            },
-        });
-
-        await Promise.all(
-            workingDayData?.map((el) => 
-                db.workingDays.create({
-                    data: { ...el, doctor_id: doctor.id },
-                })
-            )
-        );
-
-        return {
-            success: true, 
-            message: "Doctor has been added successfully", 
-            error: false,
-        };
-        
-    } catch (error) {
-
-        console.log(error);
-        return {error: true, success: false, message: "Something went wrong"};
-        
+      return {
+        success: false,
+        errors: true,
+        message: "Provide all Required Information",
+      };
     }
 
-} 
+    const validatedValues = values.data;
+
+    const workingDayData = workingDaysValues.data!;
+
+    const client = await clerkClient();
+
+
+
+    const nameParts = validatedValues.name.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+    // Generate a unique username
+    const sanitizedName = validatedValues.name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const username = `${sanitizedName}_${Math.floor(Math.random() * 10000)}`;
+
+    const user = await client.users.createUser({
+      emailAddress: [validatedValues.email],
+      username: username,
+      password: validatedValues.password,
+      firstName: firstName,
+      lastName: lastName,
+      publicMetadata: { role: "doctor" },
+    });
+
+
+    delete validatedValues["password"];
+
+    const doctor = await db.doctor.create({
+      data: {
+        ...validatedValues,
+        id: user.id,
+      },
+    });
+
+    await Promise.all(
+      workingDayData?.map((el) =>
+        db.workingDays.create({
+          data: { ...el, doctor_id: doctor.id },
+        })
+      )
+    );
+
+    return {
+      success: true,
+      message: "Doctor has been added successfully",
+      error: false,
+    };
+
+  } catch (error: any) {
+    console.error("Error creating doctor:", error);
+
+    // Log specific Clerk errors for debugging
+    if (error?.errors) {
+      console.error("Clerk Validation Errors:", JSON.stringify(error.errors, null, 2));
+    }
+
+    // Return ambiguous error message to client for security
+    return {
+      error: true,
+      success: false,
+      message: "Unable to create account. Please verify the information and try again."
+    };
+  }
+
+}
 
 export async function createNewStaff(data: any) {
   try {
     console.log("Create staff started with data:", JSON.stringify(data, null, 2));
-    
+
     const { userId } = await auth();
     if (!userId) {
       return { success: false, msg: "Unauthorized" };
@@ -107,20 +125,29 @@ export async function createNewStaff(data: any) {
     try {
       const client = await clerkClient();
       console.log("About to create Clerk user");
-      
+
+      const nameParts = validatedValues.name.trim().split(/\s+/);
+      const firstName = nameParts[0];
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+      // Generate a username for staff as well
+      const sanitizedName = validatedValues.name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      const username = `${sanitizedName}_${Math.floor(Math.random() * 10000)}`;
+
       const user = await client.users.createUser({
         emailAddress: [validatedValues.email],
+        username: username,
         password: validatedValues.password,
-        firstName: validatedValues.name.split(" ")[0],
-        lastName: validatedValues.name.split(" ")[1],
+        firstName: firstName,
+        lastName: lastName,
         publicMetadata: { role: validatedValues.role.toLowerCase() }, // Keep original for now
       });
-      
+
       console.log("Clerk user created successfully:", user.id);
-      
+
       // Remove password from validated values for database storage
       delete validatedValues["password"];
-      
+
       const staff = await db.staff.create({
         data: {
           name: validatedValues.name,
@@ -135,13 +162,13 @@ export async function createNewStaff(data: any) {
           status: "ACTIVE",
         },
       });
-      
+
       console.log("Staff created in database");
 
       // Get admin information for the email
       const currentUser = await client.users.getUser(userId);
       let adminName = "System Administrator";
-      
+
       if (currentUser.firstName || currentUser.lastName) {
         // If we have at least one name component
         const firstName = currentUser.firstName || "";
@@ -181,7 +208,7 @@ export async function createNewStaff(data: any) {
         console.error("Error sending welcome email to staff:", emailError);
         // Continue with success even if email fails
       }
-      
+
       return {
         success: true,
         message: "Staff added successfully",
@@ -201,26 +228,26 @@ export async function createNewStaff(data: any) {
   }
 }
 
-  export async function addNewService(data: any) {
-    try {
-      const isValidData = ServicesSchema.safeParse(data);
-  
-      const validatedData = isValidData.data;
-  
-      await db.services.create({
-        data: { ...validatedData!, price: Number(data.price!) },
-      });
-  
-      return {
-        success: true,
-        error: false,
-        msg: `Service added successfully`,
-      };
-    } catch (error) {
-      console.log(error);
-      return { success: false, msg: "Internal Server Error" };
-    }
+export async function addNewService(data: any) {
+  try {
+    const isValidData = ServicesSchema.safeParse(data);
+
+    const validatedData = isValidData.data;
+
+    await db.services.create({
+      data: { ...validatedData!, price: Number(data.price!) },
+    });
+
+    return {
+      success: true,
+      error: false,
+      msg: `Service added successfully`,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, msg: "Internal Server Error" };
   }
+}
 
 
 export async function sendWelcomeDoctorEmailAction(

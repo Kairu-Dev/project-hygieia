@@ -79,7 +79,7 @@ export const ScheduledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
             <Text style={styles.text}>
               We&apos;re pleased to inform you that your appointment has been <strong>scheduled</strong> with Dr. {doctorName}.
             </Text>
-            
+
             <Section style={styles.detailsSection}>
               <Text style={styles.detailsHeading}>Appointment Details:</Text>
               <Text style={styles.detailsText}>• <strong>Date:</strong> {formattedDate}</Text>
@@ -87,19 +87,19 @@ export const ScheduledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
               <Text style={styles.detailsText}>• <strong>Type:</strong> {appointmentType}</Text>
               {reason && <Text style={styles.detailsText}>• <strong>Notes:</strong> {reason}</Text>}
             </Section>
-            
+
             <Text style={styles.text}>
               Please arrive 15 minutes before your scheduled appointment time. If you need to reschedule or cancel, please contact us at least 24 hours in advance.
             </Text>
-            
+
             <Button style={styles.button} href="https://medix-final.vercel.app/">
               View Your Appointments
             </Button>
-            
+
             <Text style={styles.text}>
               If you have any questions, please don&apos;t hesitate to contact us.
             </Text>
-            
+
             <Text style={styles.text}>
               Best regards,<br />
               The Medical Team
@@ -107,7 +107,7 @@ export const ScheduledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
           </Section>
           <Hr style={styles.hr} />
           <Text style={styles.footer}>
-            © {new Date().getFullYear()} MEDIX IHMS. All rights reserved.
+            © {new Date().getFullYear()} HYGIEIA IHMS. All rights reserved.
           </Text>
         </Container>
       </Body>
@@ -137,13 +137,13 @@ export const CancelledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
       <Preview>Your appointment has been cancelled</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          <Heading style={{...styles.header, color: '#b91c1c'}}>Appointment Cancellation</Heading>
+          <Heading style={{ ...styles.header, color: '#b91c1c' }}>Appointment Cancellation</Heading>
           <Section style={styles.section}>
             <Text style={styles.text}>Dear {patientName},</Text>
             <Text style={styles.text}>
               We regret to inform you that your appointment with Dr. {doctorName} has been <strong>cancelled</strong>.
             </Text>
-            
+
             <Section style={styles.detailsSection}>
               <Text style={styles.detailsHeading}>Appointment Details:</Text>
               <Text style={styles.detailsText}>• <strong>Date:</strong> {formattedDate}</Text>
@@ -155,19 +155,19 @@ export const CancelledAppointmentEmail: React.FC<AppointmentEmailProps> = ({
                 </Text>
               )}
             </Section>
-            
+
             <Text style={styles.text}>
               We apologize for any inconvenience this may cause. Please click the button below to reschedule your appointment at a more convenient time.
             </Text>
-            
-            <Button style={{...styles.button, backgroundColor: '#b91c1c'}} href="https://medix-final.vercel.app/">
+
+            <Button style={{ ...styles.button, backgroundColor: '#b91c1c' }} href="https://medix-final.vercel.app/">
               Reschedule Appointment
             </Button>
-            
+
             <Text style={styles.text}>
               If you have any questions or need further assistance, please don&apos;t hesitate to contact our office.
             </Text>
-            
+
             <Text style={styles.text}>
               Best regards,<br />
               The Medical Team
@@ -278,7 +278,7 @@ export const ReferralEmail: React.FC<ReferralEmailProps> = ({
             <Text style={styles.text}>
               Dr. {referringDoctorName} has referred you to a specialist for further evaluation and care.
             </Text>
-            
+
             <Section style={styles.detailsSection}>
               <Text style={styles.detailsHeading}>Referral Details:</Text>
               <Text style={styles.detailsText}>• <strong>Referral Number:</strong> {referralNumber}</Text>
@@ -288,25 +288,25 @@ export const ReferralEmail: React.FC<ReferralEmailProps> = ({
               <Text style={styles.detailsText}>• <strong>Urgency Level:</strong> {urgency}</Text>
               <Text style={styles.detailsText}>• <strong>Reason:</strong> {reasonForReferral}</Text>
             </Section>
-            
+
             <Text style={styles.text}>
-              {appointmentInstructions || 
+              {appointmentInstructions ||
                 "Please contact the specialist's office to schedule your appointment. They will be expecting your call and have received your referral information."
               }
             </Text>
-            
+
             <Text style={styles.text}>
               <strong>Important:</strong> Please bring this referral number ({referralNumber}) when you visit the specialist, along with your insurance card and any relevant medical records.
             </Text>
-            
+
             <Button style={styles.button} href="https://medix-final.vercel.app/">
               Schedule Your Appointment
             </Button>
-            
+
             <Text style={styles.text}>
-            If you have any questions about this referral, please contact Dr. {referringDoctorName}&apos;s office.
+              If you have any questions about this referral, please contact Dr. {referringDoctorName}&apos;s office.
             </Text>
-            
+
             <Text style={styles.text}>
               Best regards,<br />
               The Medical Team
@@ -314,7 +314,7 @@ export const ReferralEmail: React.FC<ReferralEmailProps> = ({
           </Section>
           <Hr style={styles.hr} />
           <Text style={styles.footer}>
-            © {new Date().getFullYear()} MEDIX IHMS. All rights reserved.
+            © {new Date().getFullYear()} HYGIEIA IHMS. All rights reserved.
           </Text>
         </Container>
       </Body>
@@ -335,11 +335,11 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
   // Function to convert 24-hour time to 12-hour format with AM/PM
   const convertTo12Hour = (time24: string): string => {
     if (!time24) return 'Not specified';
-    
+
     const [hoursStr, minutesStr] = time24.split(':');
     const hours = parseInt(hoursStr, 10);
     const minutes = parseInt(minutesStr, 10);
-    
+
     // Handle special cases
     if (hours === 0) {
       // 00:00 becomes 12:00 AM (midnight)
@@ -359,19 +359,19 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
   const formatWorkSchedule = () => {
     return workSchedule.map(schedule => {
       const dayName = schedule.day.charAt(0).toUpperCase() + schedule.day.slice(1);
-      
+
       if (!schedule.start_time || !schedule.close_time) {
         return `${dayName}: Full Day`;
       }
-      
+
       const startTime12 = convertTo12Hour(schedule.start_time);
       const endTime12 = convertTo12Hour(schedule.close_time);
-      
+
       // Special handling for midnight end time
-      const endTimeDisplay = schedule.close_time === '00:00' 
-        ? '12:00 AM (Next Day)' 
+      const endTimeDisplay = schedule.close_time === '00:00'
+        ? '12:00 AM (Next Day)'
         : endTime12;
-      
+
       return `${dayName}: ${startTime12} - ${endTimeDisplay}`;
     }).join('\n');
   };
@@ -451,16 +451,16 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
   return (
     <Html>
       <Head />
-      <Preview>Welcome to MEDIX IHMS - Your account has been created</Preview>
+      <Preview>Welcome to HYGIEIA IHMS - Your account has been created</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          <Heading style={styles.header}>Welcome to MEDIX IHMS</Heading>
+          <Heading style={styles.header}>Welcome to HYGIEIA IHMS</Heading>
           <Section style={styles.section}>
             <Text style={styles.text}>Dear Dr. {doctorName},</Text>
             <Text style={styles.text}>
               Welcome to the MEDIX Integrated Hospital Management System! Your account has been successfully created by <strong>{adminName}</strong>.
             </Text>
-            
+
             <Section style={styles.detailsSection}>
               <Text style={styles.detailsHeading}>Your Account Details:</Text>
               <Text style={styles.detailsText}>• <strong>Email:</strong> {doctorEmail}</Text>
@@ -474,8 +474,8 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
               <Section style={styles.detailsSection}>
                 <Text style={styles.detailsHeading}>Your Work Schedule:</Text>
                 <Text style={{
-                  ...styles.detailsText, 
-                  whiteSpace: 'pre-line' as const, 
+                  ...styles.detailsText,
+                  whiteSpace: 'pre-line' as const,
                   fontFamily: 'monospace',
                   fontSize: '14px',
                   backgroundColor: '#ffffff',
@@ -487,15 +487,15 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
                 </Text>
               </Section>
             )}
-            
+
             <Text style={styles.text}>
               <strong>Important Security Notice:</strong> For your security, please change your password after your first login. You can do this by accessing your profile settings.
             </Text>
-            
+
             <Button style={styles.button} href="https://medix-final.vercel.app/">
-              Access MEDIX System
+              Access Hygieia System
             </Button>
-            
+
             <Text style={styles.text}>
               <strong>Getting Started:</strong>
             </Text>
@@ -506,20 +506,20 @@ export const DoctorWelcomeEmail: React.FC<DoctorWelcomeEmailProps> = ({
               4. Change your default password<br />
               5. Familiarize yourself with the dashboard
             </Text>
-            
+
             <Text style={styles.text}>
               If you have any questions or need assistance getting started, please don&apos;t hesitate to contact the system administrator or IT support team.
             </Text>
-            
+
             <Text style={styles.text}>
               Best regards,<br />
-              The MEDIX IHMS Team<br />
+              The HYGIEIA IHMS Team<br />
               Administrator: {adminName}
             </Text>
           </Section>
           <Hr style={styles.hr} />
           <Text style={styles.footer}>
-            © {new Date().getFullYear()} MEDIX IHMS. All rights reserved.<br />
+            © {new Date().getFullYear()} HYGIEIA IHMS. All rights reserved.<br />
             This is an automated message. Please do not reply to this email.
           </Text>
         </Container>
@@ -567,16 +567,16 @@ export const StaffWelcomeEmail: React.FC<StaffWelcomeEmailProps> = ({
   return (
     <Html>
       <Head />
-      <Preview>Welcome to MEDIX IHMS - Your staff account has been created</Preview>
+      <Preview>Welcome to HYGIEIA IHMS - Your staff account has been created</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          <Heading style={{...styles.header, color: '#059669'}}>Welcome to MEDIX IHMS</Heading>
+          <Heading style={{ ...styles.header, color: '#059669' }}>Welcome to HYGIEIA IHMS</Heading>
           <Section style={styles.section}>
             <Text style={styles.text}>Dear {staffName},</Text>
             <Text style={styles.text}>
               Welcome to the MEDIX Integrated Hospital Management System! Your staff account has been successfully created by <strong>{adminName}</strong>.
             </Text>
-            
+
             <Section style={styles.detailsSection}>
               <Text style={styles.detailsHeading}>Your Account Details:</Text>
               <Text style={styles.detailsText}>• <strong>Email:</strong> {staffEmail}</Text>
@@ -587,15 +587,15 @@ export const StaffWelcomeEmail: React.FC<StaffWelcomeEmailProps> = ({
               <Text style={styles.detailsText}>• <strong>Phone:</strong> {phone}</Text>
               <Text style={styles.detailsText}>• <strong>Address:</strong> {address}</Text>
             </Section>
-            
+
             <Text style={styles.text}>
-            <strong>Login Details:</strong> Please ensure your email account remains secure, as password changes must be requested through your administrator.
+              <strong>Login Details:</strong> Please ensure your email account remains secure, as password changes must be requested through your administrator.
             </Text>
-            
-            <Button style={{...styles.button, backgroundColor: '#059669'}} href="https://medix-final.vercel.app/">
-              Access MEDIX System
+
+            <Button style={{ ...styles.button, backgroundColor: '#059669' }} href="https://medix-final.vercel.app/">
+              Access Hygieia System
             </Button>
-            
+
             <Text style={styles.text}>
               <strong>Getting Started:</strong>
             </Text>
@@ -604,24 +604,24 @@ export const StaffWelcomeEmail: React.FC<StaffWelcomeEmailProps> = ({
               2. Log in using your credentials<br />
               3. Familiarize yourself with the dashboard and your role-specific features
             </Text>
-            
+
             <Text style={styles.text}>
               As a <strong>{formatRole(role)}</strong>, you will have access to the features and modules relevant to your role within the hospital management system. Please take some time to explore your dashboard and available functionalities.
             </Text>
-            
+
             <Text style={styles.text}>
               If you have any questions or need assistance getting started, please don&apos;t hesitate to contact the system administrator or IT support team.
             </Text>
-            
+
             <Text style={styles.text}>
               Best regards,<br />
-              The MEDIX IHMS Team<br />
+              The HYGIEIA IHMS Team<br />
               Administrator: {adminName}
             </Text>
           </Section>
           <Hr style={styles.hr} />
           <Text style={styles.footer}>
-            © {new Date().getFullYear()} MEDIX IHMS. All rights reserved.<br />
+            © {new Date().getFullYear()} HYGIEIA IHMS. All rights reserved.<br />
             This is an automated message. Please do not reply to this email.
           </Text>
         </Container>
@@ -656,7 +656,7 @@ export const CompletedAppointmentEmail: React.FC<AppointmentEmailProps> = ({
             <Text style={styles.text}>
               We hope you had a positive experience during your recent visit. Your appointment with Dr. {doctorName} has been marked as <strong>completed</strong>.
             </Text>
-            
+
             <Section style={styles.detailsSection}>
               <Text style={styles.detailsHeading}>Appointment Summary:</Text>
               <Text style={styles.detailsText}>• <strong>Date:</strong> {formattedDate}</Text>
@@ -664,24 +664,24 @@ export const CompletedAppointmentEmail: React.FC<AppointmentEmailProps> = ({
               <Text style={styles.detailsText}>• <strong>Type:</strong> {appointmentType}</Text>
               <Text style={styles.detailsText}>• <strong>Doctor:</strong> Dr. {doctorName}</Text>
             </Section>
-            
+
             <Text style={styles.text}>
               <strong>Next Steps:</strong><br />
               Please proceed to payment/billing to complete your visit. You can settle your bill at the front desk or through our online payment portal.
             </Text>
-            
+
             <Button style={styles.button} href="https://medix-final.vercel.app/">
               Proceed to Payment/Billing
             </Button>
-            
+
             <Text style={styles.text}>
               If you have any questions about your visit or billing, please don&apos;t hesitate to contact our billing department or front desk staff.
             </Text>
-            
+
             <Text style={styles.text}>
               Thank you for choosing our medical services. We look forward to serving you again.
             </Text>
-            
+
             <Text style={styles.text}>
               Best regards,<br />
               Dr. {doctorName} & The Medical Team
@@ -689,7 +689,7 @@ export const CompletedAppointmentEmail: React.FC<AppointmentEmailProps> = ({
           </Section>
           <Hr style={styles.hr} />
           <Text style={styles.footer}>
-            © {new Date().getFullYear()} MEDIX IHMS. All rights reserved.
+            © {new Date().getFullYear()} HYGIEIA IHMS. All rights reserved.
           </Text>
         </Container>
       </Body>

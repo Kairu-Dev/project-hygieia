@@ -30,6 +30,14 @@ const PatientProfilePage = async (props: ParamsProps) => {
 
     const { data } = await getPatientFullDataById(id);
 
+    if (!data) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-black-800 text-cyan-500">
+                <p className="text-xl font-semibold">Patient Profile Not Found</p>
+            </div>
+        );
+    }
+
     const SmallCard = ({ label, value }: { label: string; value: string }) => (
         <div className="min-w-0 flex-shrink-0">
             <span className="text-sm text-cyan-400/70 block">{label}</span>
@@ -47,7 +55,7 @@ const PatientProfilePage = async (props: ParamsProps) => {
                     <Card className="bg-gradient-to-b from-blue-950/90 to-slate-950 rounded-xl p-4 w-full lg:w-80 lg:flex-shrink-0 border border-cyan-700/30 shadow-md flex flex-col items-center backdrop-blur-sm">
 
                         <ProfileImage
-                            url={data?.img!}
+                            url={data?.img || ""}
                             name={data?.first_name + " " + data?.last_name}
                             className="h-16 w-16 sm:h-20 sm:w-20 md:flex ring-2 ring-cyan-400 ring-offset-2 ring-offset-blue-950 shadow-[0_0_15px_rgba(54,238,255,0.4)]"
                             textClassName="text-2xl sm:text-3xl"
@@ -69,21 +77,21 @@ const PatientProfilePage = async (props: ParamsProps) => {
 
                     <Card className="bg-gradient-to-br from-indigo-950/30 to-indigo-900/20 rounded-xl p-4 sm:p-6 w-full lg:flex-1 lg:max-w-4xl border border-indigo-700/30 shadow-md space-y-4 sm:space-y-6 backdrop-blur-sm min-w-0">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <SmallCard label={"Gender"} value={data?.gender?.toLowerCase()!} />
-                            <SmallCard label={"Date of Birth"} value={formatDate(data?.date_of_birth!, "yyyy-MM-dd")} />
-                            <SmallCard label={"Phone Number"} value={data?.phone!} />
+                            <SmallCard label={"Gender"} value={data?.gender?.toLowerCase() || "N/A"} />
+                            <SmallCard label={"Date of Birth"} value={data.date_of_birth ? formatDate(data.date_of_birth, "yyyy-MM-dd") : "N/A"} />
+                            <SmallCard label={"Phone Number"} value={data?.phone || "N/A"} />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <SmallCard label={"Marital Status"} value={data?.marital_status!} />
-                            <SmallCard label={"Blood Group"} value={data?.blood_group!} />
-                            <SmallCard label={"Address"} value={data?.address!} />
+                            <SmallCard label={"Marital Status"} value={data?.marital_status || "N/A"} />
+                            <SmallCard label={"Blood Group"} value={data?.blood_group || "N/A"} />
+                            <SmallCard label={"Address"} value={data?.address || "N/A"} />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <SmallCard label={"Emergency Contact Name"} value={data?.emergency_contact_name!} />
-                            <SmallCard label={"Emergency Contact Number"} value={data?.emergency_contact_number!} />
-                            <SmallCard label={"Last Visit Date"} value={data?.lastVisit ? format(data?.lastVisit!, "yyyy-MM-dd") : "No recorded visit"} />
+                            <SmallCard label={"Emergency Contact Name"} value={data?.emergency_contact_name || "N/A"} />
+                            <SmallCard label={"Emergency Contact Number"} value={data?.emergency_contact_number || "N/A"} />
+                            <SmallCard label={"Last Visit Date"} value={data?.lastVisit ? format(data.lastVisit, "yyyy-MM-dd") : "No recorded visit"} />
                         </div>
                     </Card>
 
@@ -91,7 +99,7 @@ const PatientProfilePage = async (props: ParamsProps) => {
 
                 <div className="mt-6 sm:mt-10 min-w-0">
                     {
-                        category === "medical-history" && <MedicalHistoryContainer patientId={id!} />
+                        category === "medical-history" && <MedicalHistoryContainer patientId={id} />
                     }
 
                     {/*
@@ -158,7 +166,7 @@ const PatientProfilePage = async (props: ParamsProps) => {
 
                 </div>
 
-                <PatientRatingContainer id={id!} />
+                <PatientRatingContainer id={id} />
             </div>
 
         </div>

@@ -45,7 +45,7 @@ export async function sendAppointmentEmail(
 
     // Send the email using Nodemailer with to as an array like in Resend
     const info = await transporter.sendMail({
-      from: '"Medix - Centre Médical" <' + process.env.GMAIL_USER + '>', // Use the same email from env
+      from: '"Hygieia - Centre Médical" <' + process.env.GMAIL_USER + '>', // Use the same email from env
       to: [to], // Use array format like in the Resend implementation
       subject,
       html,
@@ -82,7 +82,7 @@ export async function sendReferralEmail(
 
     // Send the email using Nodemailer
     const info = await transporter.sendMail({
-      from: '"Medix - Centre Médical" <' + process.env.GMAIL_USER + '>',
+      from: '"Hygieia - Centre Médical" <' + process.env.GMAIL_USER + '>',
       to: [patientEmail],
       subject: `Medical Referral - ${referralData.referralNumber}`,
       html,
@@ -118,9 +118,9 @@ export async function sendDoctorWelcomeEmail(
 
     // Send the email using Nodemailer
     const info = await transporter.sendMail({
-      from: '"MEDIX IHMS - Admin" <' + process.env.GMAIL_USER + '>',
+      from: '"HYGIEIA IHMS - Admin" <' + process.env.GMAIL_USER + '>',
       to: [to],
-      subject: 'Welcome to MEDIX IHMS - Your Account Credentials',
+      subject: 'Welcome to HYGIEIA IHMS - Your Account Credentials',
       html,
       headers: {
         'X-Priority': '1', // High priority
@@ -155,9 +155,9 @@ export async function sendStaffWelcomeEmail(
 
     // Send the email using Nodemailer
     const info = await transporter.sendMail({
-      from: '"MEDIX IHMS - Admin" <' + process.env.GMAIL_USER + '>',
+      from: '"HYGIEIA IHMS - Admin" <' + process.env.GMAIL_USER + '>',
       to: [to],
-      subject: 'Welcome to MEDIX IHMS - Your Staff Account Credentials',
+      subject: 'Welcome to HYGIEIA IHMS - Your Staff Account Credentials',
       html,
       headers: {
         'X-Priority': '1', // High priority

@@ -1,7 +1,7 @@
 // app/record/appointments/[id]/page.tsx
 // or app/billing/page.tsx (depending on your actual file path)
 // New Version
-  /* eslint-disable */
+/* eslint-disable */
 import ClientPaymentButton from '@/components/billing-actions';
 import { ProfileImage } from '@/components/profile-image';
 import { getPaymentByAppointmentId, getPaymentById } from '@/utils/services/payment-fetch';
@@ -31,9 +31,9 @@ interface BillItem {
   total_cost: number;
   service: {
     id: number;
-    service_name: string;  
+    service_name: string;
     description: string;
-    price: number;        
+    price: number;
     created_at: Date;
     updated_at: Date;
   };
@@ -70,7 +70,7 @@ const getPaymentMethodIcon = (method: PaymentMethod) => {
   }
 };
 
-export default async function PaymentDetailsPage(props: { params: Promise<{ id: string }>, searchParams: Promise<{ cat?: string }> }) {
+export default async function PaymentDetailsPage(props: PaymentDetailsProps) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const { id } = params;
@@ -79,17 +79,17 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
   if (!id) {
     notFound();
   }
-  
+
   let response;
-  
+
   // First try to find payment directly by ID
   response = await getPaymentById(id);
-  
+
   // If not found, try to find by appointment ID
   if (!response.success || !response.data) {
     response = await getPaymentByAppointmentId(id);
   }
-  
+
   // If still not found, show 404
   if (!response.success || !response.data) {
     notFound();
@@ -100,7 +100,7 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
   const balance = payable - payment.amount_paid;
   const patient = payment.patient;
   const fullName = `${patient.first_name} ${patient.last_name}`;
-  
+
   // Determine payment status dynamically based on the amounts
   const paymentStatus = payment.status;
 
@@ -111,43 +111,43 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
       <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-emerald-500/70 rounded-tr-xl"></div>
       <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-emerald-500/70 rounded-bl-xl"></div>
       <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-emerald-500/70 rounded-br-xl"></div>
-      
+
       {/* Enhanced emerald glow effects */}
       <div className="absolute -top-5 right-10 w-32 h-32 bg-emerald-300/20 rounded-full blur-2xl"></div>
       <div className="absolute -bottom-5 left-20 w-32 h-32 bg-emerald-200/15 rounded-full blur-3xl"></div>
-      
+
       {/* Back button */}
-      <Link 
+      <Link
         href={`/record/appointments/${payment.appointment_id}?cat=bills`}
         className="inline-flex items-center gap-2 bg-emerald-900/70 hover:bg-emerald-800/70 text-emerald-100 px-4 py-2 rounded-lg border border-emerald-500/30 transition-colors duration-200 mb-6"
       >
         <ArrowLeft size={16} />
         <span>Back to Billing</span>
       </Link>
-      
+
       <div className="mt-4 bg-gradient-to-b from-emerald-50/15 to-emerald-900/30 rounded-xl p-6 border border-emerald-500/40 shadow-md backdrop-blur-sm relative">
         <div className="absolute -left-4 h-6 w-1 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
-        
+
         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
           {/* Left column - Patient info */}
           <div className="w-full md:w-1/3">
             <h2 className="text-lg font-bold text-white tracking-wider pl-2 font-mono uppercase mb-4">Payment Details</h2>
-            
+
             <div className="bg-gray-900/70 border border-emerald-500/30 rounded-xl p-4 mb-4">
               <div className="flex items-center gap-4 mb-4">
-                <ProfileImage 
+                <ProfileImage
                   url={patient.img || ""}
                   name={fullName}
                   bgColor={patient.colorCode || "#10b981"}
                   textClassName="text-black"
                 />
-                
+
                 <div>
                   <h3 className="uppercase font-mono tracking-wider text-emerald-200">{fullName}</h3>
                   <span className="text-sm capitalize text-emerald-300/80">{patient.gender}</span>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 gap-3">
                 <div className="flex items-center gap-2 text-emerald-200">
                   <User size={16} className="text-emerald-400" />
@@ -160,7 +160,7 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
               </div>
             </div>
           </div>
-          
+
           {/* Right column - Payment info */}
           <div className="w-full md:w-2/3">
             <div className="flex justify-between items-center mb-4">
@@ -169,7 +169,7 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
                 {paymentStatus}
               </span>
             </div>
-            
+
             <div className="bg-gray-900/70 border border-emerald-500/30 rounded-xl p-4 mb-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -193,11 +193,11 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
                 </div>
               </div>
             </div>
-            
+
             {/* Payment details */}
             <div className="bg-gray-900/70 border border-emerald-500/30 rounded-xl p-4">
               <h3 className="text-md font-bold text-emerald-200 tracking-wider font-mono mb-4">Billing Summary</h3>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between items-center pb-2 border-b border-emerald-500/20">
                   <span className="text-emerald-200">Total Amount</span>
@@ -223,7 +223,7 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
                   <span className="text-emerald-200">Amount Paid</span>
                   <span className="text-emerald-400 font-medium">{payment.amount_paid}</span>
                 </div>
-                
+
                 {paymentStatus !== "PAID" && (
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-red-400 font-medium">Balance Due</span>
@@ -239,12 +239,12 @@ export default async function PaymentDetailsPage(props: { params: Promise<{ id: 
             )}
           </div>
         </div>
-        
+
         {/* Bill items section */}
         {payment.bills && payment.bills.length > 0 && (
           <div className="mt-6 bg-gray-900/70 border border-emerald-500/30 rounded-xl p-4">
             <h3 className="text-md font-bold text-emerald-200 tracking-wider font-mono mb-4">Bill Items</h3>
-            
+
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-emerald-500/30">

@@ -196,7 +196,7 @@ const DoctorProfile = async (props: { params: Promise<{ id: string }> }) => {
                   <h1 className="text-lg sm:text-xl font-bold text-white tracking-wider">Patient Reviews & Ratings</h1>
                 </div>
 
-                <RatingContainer id={params?.id} />
+                <RatingContainer id={params.id} />
               </div>
             </div>
           </div>
