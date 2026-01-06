@@ -2,6 +2,7 @@
 
 import { VitalSignsFormData } from "@/components/dialogs/add-vital-signs";
 import { z } from "zod";
+import crypto from "crypto";
 import db from "@/lib/db";
 import {
   AppointmentSchema,
@@ -371,7 +372,8 @@ export async function createNewReferral(formData: any) {
       referral,
     };
   } catch (error) {
-    console.error("Error creating referral - details hidden for privacy");
+    const errorId = crypto.randomUUID();
+    console.error(`Error creating referral (Error ID: ${errorId})`);
     return {
       success: false,
       message: "Failed to create referral",
@@ -413,9 +415,8 @@ export async function updateReferralStatus(
       referral: updatedReferral,
     };
   } catch (error) {
-    console.error(
-      "Error updating referral status - details hidden for privacy"
-    );
+    const errorId = crypto.randomUUID();
+    console.error(`Error updating referral status (Error ID: ${errorId})`);
     return {
       success: false,
       message: "Failed to update referral status",
