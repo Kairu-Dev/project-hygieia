@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { scrubPHI } from "./utils/phi-scrubber";
 
 Sentry.init({
   dsn: "https://74d93eec6fb6294cc43b9afb20c137d3@o4510622828068864.ingest.de.sentry.io/4510622850416720",
@@ -35,17 +36,15 @@ Sentry.init({
       delete event.user.username;
     }
 
-    // Scrub PHI patterns from error messages and stack traces
-    const phiPatterns = /\b(patient|mrn|medical record|diagnosis|prescription|treatment|appointment|doctor|staff)\b/gi;
-
+    // Scrub PHI using robust utility
     if (event.message) {
-      event.message = event.message.replace(phiPatterns, '[REDACTED]');
+      event.message = scrubPHI(event.message);
     }
 
     if (event.exception?.values) {
-      event.exception.values = event.exception.values.map(exception => ({
+      event.exception.values = event.exception.values.map((exception) => ({
         ...exception,
-        value: exception.value?.replace(phiPatterns, '[REDACTED]')
+        value: exception.value ? scrubPHI(exception.value) : exception.value,
       }));
     }
 

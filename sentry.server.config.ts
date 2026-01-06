@@ -26,16 +26,18 @@ Sentry.init({
     }
 
     // Scrub PHI patterns from error messages and stack traces
-    const phiPatterns = /\b(patient|mrn|medical record|diagnosis|prescription|treatment|appointment|doctor|staff)\b/gi;
+    // Scrub PHI patterns from error messages and stack traces
+    const phiPatterns =
+      /\b(patient|mrn|medical record number|diagnosis|prescription|treatment|appointment|doctor|staff|ssn|social security|insurance|billing|lab result|vital sign|blood pressure|temperature)\b/gi;
 
     if (event.message) {
-      event.message = event.message.replace(phiPatterns, '[REDACTED]');
+      event.message = event.message.replace(phiPatterns, "[REDACTED]");
     }
 
     if (event.exception?.values) {
-      event.exception.values = event.exception.values.map(exception => ({
+      event.exception.values = event.exception.values.map((exception) => ({
         ...exception,
-        value: exception.value?.replace(phiPatterns, '[REDACTED]')
+        value: exception.value?.replace(phiPatterns, "[REDACTED]"),
       }));
     }
 

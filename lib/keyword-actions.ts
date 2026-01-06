@@ -3,33 +3,35 @@
 import { PriorityLevel } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import db from "./db";
-import { DEFAULT_SETTINGS, AdvancedSettings } from "@/components/AdvancedSettings";
+import {
+  DEFAULT_SETTINGS,
+  AdvancedSettings,
+} from "@/components/AdvancedSettings";
 
 // Fetch all keyword groups with their keywords
 export const getKeywordGroups = async () => {
   try {
     console.log("Querying database for keyword groups...");
-    
+
     const groups = await db.keywordGroup.findMany({
       include: {
         keywords: {
           where: { isActive: true },
-          orderBy: { text: 'asc' }
-        }
+          orderBy: { text: "asc" },
+        },
       },
-      orderBy: { name: 'asc' }
+      orderBy: { name: "asc" },
     });
-    
+
     console.log(`Database returned ${groups.length} groups`);
-    
+
     // Log each group for debugging
-    groups.forEach(group => {
-      console.log(`Group: ${group.name}, Active: ${group.isActive}, Keywords: ${group.keywords.length}`);
-      group.keywords.forEach(keyword => {
-        console.log(`  - Keyword: "${keyword.text}", Weight: ${keyword.weight}, Partial: ${keyword.isPartialMatch}`);
-      });
+    groups.forEach((group) => {
+      console.log(
+        `Group: ${group.name}, Active: ${group.isActive}, Keywords: ${group.keywords.length}`
+      );
     });
-    
+
     return groups;
   } catch (error) {
     console.error("Error fetching keyword groups:", error);
@@ -55,11 +57,11 @@ export const createKeywordGroup = async (data: {
         description: data.description,
       },
       include: {
-        keywords: true
-      }
+        keywords: true,
+      },
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true, data: group };
   } catch (error) {
     console.error("Error creating keyword group:", error);
@@ -68,24 +70,27 @@ export const createKeywordGroup = async (data: {
 };
 
 // Update keyword group
-export const updateKeywordGroup = async (id: string, data: {
-  name?: string;
-  department?: string;
-  priority?: PriorityLevel;
-  baseScore?: number;
-  description?: string;
-  isActive?: boolean;
-}) => {
+export const updateKeywordGroup = async (
+  id: string,
+  data: {
+    name?: string;
+    department?: string;
+    priority?: PriorityLevel;
+    baseScore?: number;
+    description?: string;
+    isActive?: boolean;
+  }
+) => {
   try {
     const group = await db.keywordGroup.update({
       where: { id },
       data,
       include: {
-        keywords: true
-      }
+        keywords: true,
+      },
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true, data: group };
   } catch (error) {
     console.error("Error updating keyword group:", error);
@@ -97,10 +102,10 @@ export const updateKeywordGroup = async (id: string, data: {
 export const deleteKeywordGroup = async (id: string) => {
   try {
     await db.keywordGroup.delete({
-      where: { id }
+      where: { id },
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true };
   } catch (error) {
     console.error("Error deleting keyword group:", error);
@@ -109,12 +114,15 @@ export const deleteKeywordGroup = async (id: string) => {
 };
 
 // Add keyword to group
-export const addKeyword = async (groupId: string, data: {
-  text: string;
-  weight?: number;
-  isPartialMatch?: boolean;
-  color?: string; // Add color parameter
-}) => {
+export const addKeyword = async (
+  groupId: string,
+  data: {
+    text: string;
+    weight?: number;
+    isPartialMatch?: boolean;
+    color?: string; // Add color parameter
+  }
+) => {
   try {
     const keyword = await db.keyword.create({
       data: {
@@ -123,10 +131,10 @@ export const addKeyword = async (groupId: string, data: {
         isPartialMatch: data.isPartialMatch || false,
         color: data.color, // Include color in database insert
         groupId,
-      }
+      },
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true, data: keyword };
   } catch (error) {
     console.error("Error adding keyword:", error);
@@ -135,23 +143,26 @@ export const addKeyword = async (groupId: string, data: {
 };
 
 // Update keyword
-export const updateKeyword = async (id: string, data: {
-  text?: string;
-  weight?: number;
-  isPartialMatch?: boolean;
-  isActive?: boolean;
-  color?: string;
-}) => {
+export const updateKeyword = async (
+  id: string,
+  data: {
+    text?: string;
+    weight?: number;
+    isPartialMatch?: boolean;
+    isActive?: boolean;
+    color?: string;
+  }
+) => {
   try {
     const keyword = await db.keyword.update({
       where: { id },
       data: {
         ...data,
         text: data.text ? data.text.toLowerCase().trim() : undefined,
-      }
+      },
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true, data: keyword };
   } catch (error) {
     console.error("Error updating keyword:", error);
@@ -163,10 +174,10 @@ export const updateKeyword = async (id: string, data: {
 export const deleteKeyword = async (id: string) => {
   try {
     await db.keyword.delete({
-      where: { id }
+      where: { id },
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true };
   } catch (error) {
     console.error("Error deleting keyword:", error);
@@ -178,20 +189,20 @@ export const deleteKeyword = async (id: string) => {
 export const bulkAddKeywords = async (groupId: string, keywords: string[]) => {
   try {
     const keywordData = keywords
-      .filter(k => k.trim().length > 0)
-      .map(text => ({
+      .filter((k) => k.trim().length > 0)
+      .map((text) => ({
         text: text.toLowerCase().trim(),
         weight: 1.0,
         isPartialMatch: false,
         groupId,
       }));
-    
+
     await db.keyword.createMany({
       data: keywordData,
-      skipDuplicates: true
+      skipDuplicates: true,
     });
-    
-    revalidatePath('/system-settings');
+
+    revalidatePath("/system-settings");
     return { success: true };
   } catch (error) {
     console.error("Error bulk adding keywords:", error);
@@ -206,11 +217,11 @@ export const getActiveKeywordsForAnalyzer = async () => {
       where: { isActive: true },
       include: {
         keywords: {
-          where: { isActive: true }
-        }
-      }
+          where: { isActive: true },
+        },
+      },
     });
-    
+
     return groups;
   } catch (error) {
     console.error("Error fetching active keywords:", error);
@@ -218,29 +229,28 @@ export const getActiveKeywordsForAnalyzer = async () => {
   }
 };
 
-
 //ADVANCED SETTINGS
 export async function getAdvancedSettings(): Promise<AdvancedSettings> {
   try {
     const settings = await db.advancedSettings.findUnique({
-      where: { id: 'global' }
+      where: { id: "global" },
     });
 
     if (!settings) {
       // Create default settings if they don't exist
       const created = await db.advancedSettings.create({
         data: {
-          id: 'global',
-          ...DEFAULT_SETTINGS
-        }
+          id: "global",
+          ...DEFAULT_SETTINGS,
+        },
       });
-      
+
       return {
         sensitivityLevel: created.sensitivityLevel,
         showPartialMatches: created.showPartialMatches,
         enableSymptomCombinations: created.enableSymptomCombinations,
         urgentThreshold: created.urgentThreshold,
-        emergencyThreshold: created.emergencyThreshold
+        emergencyThreshold: created.emergencyThreshold,
       };
     }
 
@@ -249,10 +259,10 @@ export async function getAdvancedSettings(): Promise<AdvancedSettings> {
       showPartialMatches: settings.showPartialMatches,
       enableSymptomCombinations: settings.enableSymptomCombinations,
       urgentThreshold: settings.urgentThreshold,
-      emergencyThreshold: settings.emergencyThreshold
+      emergencyThreshold: settings.emergencyThreshold,
     };
   } catch (error) {
-    console.error('Error fetching advanced settings:', error);
+    console.error("Error fetching advanced settings:", error);
     return DEFAULT_SETTINGS;
   }
 }
@@ -262,57 +272,60 @@ export async function updateAdvancedSettings(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     await db.advancedSettings.upsert({
-      where: { id: 'global' },
+      where: { id: "global" },
       update: {
         sensitivityLevel: settings.sensitivityLevel,
         showPartialMatches: settings.showPartialMatches,
         enableSymptomCombinations: settings.enableSymptomCombinations,
         urgentThreshold: settings.urgentThreshold,
         emergencyThreshold: settings.emergencyThreshold,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       create: {
-        id: 'global',
+        id: "global",
         sensitivityLevel: settings.sensitivityLevel,
         showPartialMatches: settings.showPartialMatches,
         enableSymptomCombinations: settings.enableSymptomCombinations,
         urgentThreshold: settings.urgentThreshold,
-        emergencyThreshold: settings.emergencyThreshold
-      }
+        emergencyThreshold: settings.emergencyThreshold,
+      },
     });
 
-    revalidatePath('/keyword-management'); // Adjust path as needed
+    revalidatePath("/keyword-management"); // Adjust path as needed
     return { success: true };
   } catch (error) {
-    console.error('Error updating advanced settings:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    console.error("Error updating advanced settings:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
 
-export async function resetAdvancedSettings(): Promise<{ success: boolean; error?: string }> {
+export async function resetAdvancedSettings(): Promise<{
+  success: boolean;
+  error?: string;
+}> {
   try {
     await db.advancedSettings.upsert({
-      where: { id: 'global' },
+      where: { id: "global" },
       update: {
         ...DEFAULT_SETTINGS,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       create: {
-        id: 'global',
-        ...DEFAULT_SETTINGS
-      }
+        id: "global",
+        ...DEFAULT_SETTINGS,
+      },
     });
 
-    revalidatePath('/keyword-management'); // Adjust path as needed
+    revalidatePath("/keyword-management"); // Adjust path as needed
     return { success: true };
   } catch (error) {
-    console.error('Error resetting advanced settings:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    console.error("Error resetting advanced settings:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

@@ -1,12 +1,30 @@
-import { getRole } from '@/utils/roles';
-import { LayoutDashboard, List, ListOrdered, LucideIcon, Receipt, Settings, SquareActivity, User, UserRound, Users, UsersRound } from 'lucide-react';
-import Link from 'next/link';
-import React from 'react';
-import LogoutButton from './logout-button';
+import { getRole } from "@/utils/roles";
+import {
+  FileText,
+  LayoutDashboard,
+  List,
+  ListOrdered,
+  LucideIcon,
+  Receipt,
+  Settings,
+  SquareActivity,
+  User,
+  UserRound,
+  Users,
+  UsersRound,
+} from "lucide-react";
+import Link from "next/link";
+import React from "react";
+import LogoutButton from "./logout-button";
 
 // Import shadcn components
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ACCESS_LEVELS_ALL = [
@@ -18,11 +36,33 @@ const ACCESS_LEVELS_ALL = [
   "patient",
 ];
 
+type AccessLevel =
+  | "admin"
+  | "doctor"
+  | "nurse"
+  | "lab technician"
+  | "physical therapist"
+  | "patient";
+
+interface SidebarLink {
+  name: string;
+  href: string;
+  access: string[]; // Keeping string[] for now to match ACCESS_LEVELS_ALL but could be AccessLevel[]
+  icon: LucideIcon;
+}
+
+interface SidebarSection {
+  label: string;
+  links: SidebarLink[];
+}
+
 const SidebarIcon = ({ icon: Icon }: { icon: LucideIcon }) => {
-  return <Icon className="size-5 text-gray-300 group-hover:text-white transition-colors flex-shrink-0" />;
+  return (
+    <Icon className="size-5 text-gray-300 group-hover:text-white transition-colors flex-shrink-0" />
+  );
 };
 
-const SIDEBAR_LINKS = [
+const SIDEBAR_LINKS: SidebarSection[] = [
   {
     label: "MENU",
     links: [
@@ -70,7 +110,7 @@ const SIDEBAR_LINKS = [
       {
         name: "Appointments",
         href: "/record/appointments",
-        access: ["admin", "doctor", "nurse"],
+        access: ["admin", "doctor", "nurse", "patient"],
         icon: ListOrdered,
       },
       {
@@ -85,12 +125,7 @@ const SIDEBAR_LINKS = [
         access: ["admin", "doctor"],
         icon: Receipt,
       },
-      {
-        name: "Appointments",
-        href: "/record/appointments",
-        access: ["patient"],
-        icon: ListOrdered,
-      },
+
       {
         name: "Records",
         href: "/patient/self",
@@ -107,7 +142,7 @@ const SIDEBAR_LINKS = [
         name: "Referrals",
         href: "/doctor/referral-management",
         access: ["doctor"],
-        icon: Receipt,
+        icon: FileText,
       },
     ],
   },
@@ -125,7 +160,14 @@ const SIDEBAR_LINKS = [
 ];
 
 export const sidebar = async () => {
-  const role = await getRole();
+  let role: string;
+
+  try {
+    role = await getRole();
+  } catch (error) {
+    console.error("[Sidebar] Failed to retrieve user role:", error);
+    role = "patient"; // Safe fallback
+  }
 
   /* SIDEBAR_LINKS moved to module scope */
 
@@ -133,7 +175,10 @@ export const sidebar = async () => {
     <div className="sidebar w-full flex flex-col justify-between bg-gray-950 border-r border-gray-800 min-h-full shadow-xl">
       {/* Logo and Title */}
       <div className="px-3 lg:px-4 py-4 lg:py-5 border-b border-gray-800">
-        <Link href="/" className="flex items-center justify-center lg:justify-start gap-2.5 group">
+        <Link
+          href="/"
+          className="flex items-center justify-center lg:justify-start gap-2.5 group"
+        >
           <div className="relative flex items-center justify-center w-8 h-8 lg:w-9 lg:h-9 bg-gradient-to-br from-green-500 to-emerald-700 rounded-lg shadow-lg overflow-hidden group-hover:scale-105 transition-transform duration-200">
             <SquareActivity size={20} className="text-white z-10" />
             <div className="absolute inset-0 bg-black opacity-20 rounded-lg"></div>
@@ -147,9 +192,9 @@ export const sidebar = async () => {
       {/* Menu Items */}
       <ScrollArea className="flex-1 py-2">
         <div className="px-2 lg:px-3 text-sm space-y-4">
-          {SIDEBAR_LINKS.map((el: { label: string; links: any[] }) => {
+          {SIDEBAR_LINKS.map((el: SidebarSection) => {
             // Check if this section has any links the current user can access
-            const hasAccessibleLinks = el.links.some(link =>
+            const hasAccessibleLinks = el.links.some((link) =>
               link.access.includes(role.toLowerCase())
             );
 
@@ -166,7 +211,7 @@ export const sidebar = async () => {
                 </div>
 
                 <div className="space-y-1">
-                  {el.links.map((link: any) => {
+                  {el.links.map((link: SidebarLink) => {
                     if (link.access.includes(role.toLowerCase())) {
                       return (
                         <TooltipProvider key={link.name} delayDuration={300}>
@@ -177,7 +222,9 @@ export const sidebar = async () => {
                                 className="group flex items-center justify-center lg:justify-start gap-3 px-3 py-2.5 text-gray-300 rounded-md hover:bg-green-900/20 hover:text-white transition-all duration-200 ease-in-out relative min-h-[44px] touch-manipulation"
                               >
                                 <SidebarIcon icon={link.icon} />
-                                <span className="hidden lg:block font-medium truncate">{link.name}</span>
+                                <span className="hidden lg:block font-medium truncate">
+                                  {link.name}
+                                </span>
 
                                 {/* Active indicator */}
                                 <div className="absolute left-0 w-1 h-0 group-hover:h-4/5 bg-green-500 rounded-r-full transition-all duration-300 ease-out"></div>
@@ -208,7 +255,10 @@ export const sidebar = async () => {
               <User size={12} className="text-green-500" />
             </div>
             <span className="truncate">
-              Logged in as <span className="text-green-500 font-medium capitalize">{role.toLowerCase()}</span>
+              Logged in as{" "}
+              <span className="text-green-500 font-medium capitalize">
+                {role.toLowerCase()}
+              </span>
             </span>
           </div>
         </div>

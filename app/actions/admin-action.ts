@@ -1,13 +1,19 @@
 "use server";
 
 import db from "@/lib/db";
-import { sendDoctorWelcomeEmail, sendStaffWelcomeEmail } from "@/lib/email-service";
-import { DoctorSchema, ServicesSchema, StaffSchema, WorkingDaysSchema } from "@/lib/validation";
+import {
+  sendDoctorWelcomeEmail,
+  sendStaffWelcomeEmail,
+} from "@/lib/email-service";
+import {
+  DoctorSchema,
+  ServicesSchema,
+  StaffSchema,
+  WorkingDaysSchema,
+} from "@/lib/validation";
 import { generateRandomColor } from "@/utils";
 import { checkRole } from "@/utils/roles";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-
-
 
 interface CreateDoctorInput {
   name: string;
@@ -28,15 +34,12 @@ interface CreateDoctorInput {
 }
 
 export async function createNewDoctor(data: CreateDoctorInput) {
-
   try {
-
     const values = DoctorSchema.safeParse(data);
 
     const workingDaysValues = WorkingDaysSchema.safeParse(data.work_schedule);
 
     if (!values.success || !workingDaysValues.success) {
-
       return {
         success: false,
         errors: true,
@@ -50,14 +53,14 @@ export async function createNewDoctor(data: CreateDoctorInput) {
 
     const client = await clerkClient();
 
-
-
     const nameParts = validatedValues.name.trim().split(/\s+/);
     const firstName = nameParts[0];
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
 
     // Generate a unique username
-    const sanitizedName = validatedValues.name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const sanitizedName = validatedValues.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "_");
     const username = `${sanitizedName}_${Math.floor(Math.random() * 10000)}`;
 
     const user = await client.users.createUser({
@@ -68,7 +71,6 @@ export async function createNewDoctor(data: CreateDoctorInput) {
       lastName: lastName,
       publicMetadata: { role: "doctor" },
     });
-
 
     delete validatedValues["password"];
 
@@ -92,23 +94,29 @@ export async function createNewDoctor(data: CreateDoctorInput) {
       message: "Doctor has been added successfully",
       error: false,
     };
-
   } catch (error: any) {
-    console.error("Error creating doctor:", error);
+    console.error(
+      "Error creating doctor:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
 
     // Log specific Clerk errors for debugging
     if (error?.errors) {
-      console.error("Clerk Validation Errors:", JSON.stringify(error.errors, null, 2));
+      console.error(
+        "Clerk validation failed:",
+        error.errors?.length || 0,
+        "errors"
+      );
     }
 
     // Return ambiguous error message to client for security
     return {
       error: true,
       success: false,
-      message: "Unable to create account. Please verify the information and try again."
+      message:
+        "Unable to create account. Please verify the information and try again.",
     };
   }
-
 }
 
 interface CreateStaffInput {
@@ -124,8 +132,6 @@ interface CreateStaffInput {
 
 export async function createNewStaff(data: CreateStaffInput) {
   try {
-
-
     const { userId } = await auth();
     if (!userId) {
       return { success: false, msg: "Unauthorized" };
@@ -148,7 +154,6 @@ export async function createNewStaff(data: CreateStaffInput) {
 
     const validatedValues = values.data;
 
-
     // Store the plain password for email before we delete it
     const plainPassword = validatedValues.password;
 
@@ -160,7 +165,9 @@ export async function createNewStaff(data: CreateStaffInput) {
       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
 
       // Generate a username for staff as well
-      const sanitizedName = validatedValues.name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+      const sanitizedName = validatedValues.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "_");
       const username = `${sanitizedName}_${Math.floor(Math.random() * 10000)}`;
 
       const user = await client.users.createUser({
@@ -171,8 +178,6 @@ export async function createNewStaff(data: CreateStaffInput) {
         lastName: lastName,
         publicMetadata: { role: validatedValues.role.toLowerCase() }, // Keep original for now
       });
-
-
 
       // Remove password from validated values for database storage
       delete validatedValues["password"];
@@ -191,8 +196,6 @@ export async function createNewStaff(data: CreateStaffInput) {
           status: "ACTIVE",
         },
       });
-
-
 
       // Get admin information for the email
       const currentUser = await client.users.getUser(userId);
@@ -219,17 +222,19 @@ export async function createNewStaff(data: CreateStaffInput) {
             password: plainPassword || "", // Ensure password is always a string
             adminName: adminName,
             role: validatedValues.role,
-            department: validatedValues.department || '',
-            licenseNumber: validatedValues.license_number || '',
+            department: validatedValues.department || "",
+            licenseNumber: validatedValues.license_number || "",
             phone: validatedValues.phone,
             address: validatedValues.address,
           }
         );
 
         if (emailResult.success) {
-
         } else {
-          console.warn("Failed to send welcome email to staff:", emailResult.error);
+          console.warn(
+            "Failed to send welcome email to staff:",
+            emailResult.error
+          );
           // Don't fail the entire operation if email fails
         }
       } catch (emailError) {
@@ -243,12 +248,29 @@ export async function createNewStaff(data: CreateStaffInput) {
         error: false,
       };
     } catch (error) {
-      console.error("Clerk error:", error);
+      console.error(
+        "Clerk error:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
       // Add type guard for error
-      if (error && typeof error === 'object' && 'errors' in error) {
-        console.error("Clerk error details:", JSON.stringify(error.errors, null, 2));
+      if (
+        error &&
+        typeof error === "object" &&
+        "errors" in error &&
+        Array.isArray((error as any).errors)
+      ) {
+        console.error(
+          "Clerk validation failed:",
+          (error as any).errors.length,
+          "errors"
+        );
       }
-      return { error: true, success: false, message: "Failed to create user in authentication system. Check if User is Already Registed as a Staff in Clerk. No Duplicate Emails Allowed" };
+      return {
+        error: true,
+        success: false,
+        message:
+          "Failed to create user in authentication system. Check if User is Already Registed as a Staff in Clerk. No Duplicate Emails Allowed",
+      };
     }
   } catch (error) {
     console.error("Unexpected error:", error);
@@ -286,11 +308,13 @@ export async function addNewService(data: CreateServiceInput) {
       msg: `Service added successfully`,
     };
   } catch (error) {
-    console.error("Failed to add service:", error instanceof Error ? error.message : "Unknown error");
+    console.error(
+      "Failed to add service:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
     return { success: false, msg: "Internal Server Error" };
   }
 }
-
 
 export async function sendWelcomeDoctorEmailAction(
   email: string,

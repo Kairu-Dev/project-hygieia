@@ -1,183 +1,214 @@
-import MedicalHistoryContainer from '@/components/medical-history-container';
-import PatientRatingContainer from '@/components/patient-rating-container';
-import { ProfileImage } from '@/components/profile-image';
-import { Card } from '@/components/ui/card';
-import { getPatientFullDataById } from '@/utils/services/patientFetchInfo';
-import { auth } from '@clerk/nextjs/server';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { format, formatDate } from 'date-fns';
-import Link from 'next/link';
-import React from 'react'
+import MedicalHistoryContainer from "@/components/medical-history-container";
+import PatientRatingContainer from "@/components/patient-rating-container";
+import { ProfileImage } from "@/components/profile-image";
+import { Card } from "@/components/ui/card";
+import { getPatientFullDataById } from "@/utils/services/patientFetchInfo";
+import { auth } from "@clerk/nextjs/server";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { format, formatDate } from "date-fns";
+import Link from "next/link";
+import { encrypt } from "@/lib/encryption";
+import React from "react";
 
 interface ParamsProps {
-    params: Promise<{ patientId: string }>;
-    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+  params: Promise<{ patientId: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 /* eslint-disable */
 const PatientProfilePage = async (props: ParamsProps) => {
-    const searchParams = await props.searchParams
-    const params = await props.params;
-    let id = params.patientId;
-    let patientId = params.patientId;
-    const category = searchParams?.category || "medical-history";
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  let id = params.patientId;
+  let patientId = params.patientId;
+  const category = searchParams?.category || "medical-history";
 
-    if (patientId === "self") {
-        const { userId } = await auth();
-        if (!userId) {
-            return (
-                <div className="flex items-center justify-center min-h-screen bg-black-800 text-cyan-500">
-                    <p className="text-xl font-semibold">Authentication Required</p>
-                </div>
-            );
-        }
-        id = userId;
-
-    } else id = patientId;
-
-
-    const { data } = await getPatientFullDataById(id);
-
-    if (!data) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-black-800 text-cyan-500">
-                <p className="text-xl font-semibold">Patient Profile Not Found</p>
-            </div>
-        );
-    }
-
-    const SmallCard = ({ label, value }: { label: string; value: string }) => (
-        <div className="min-w-0 flex-shrink-0">
-            <span className="text-sm text-cyan-400/70 block">{label}</span>
-            <p className="text-sm md:text-base capitalize text-amber-400/90 break-words">{value}</p>
+  if (patientId === "self") {
+    const { userId } = await auth();
+    if (!userId) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-black-800 text-cyan-500">
+          <p className="text-xl font-semibold">Authentication Required</p>
         </div>
-    );
+      );
+    }
+    id = userId;
+  } else id = patientId;
 
+  const { data } = await getPatientFullDataById(id);
+
+  if (!data) {
     return (
-        <div className="min-h-screen bg-black-800 border-gray-800 rounded-xl py-4 px-3 sm:py-6 sm:px-4 2xl:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 border border-cyan-500/30 shadow-lg">
+      <div className="flex items-center justify-center min-h-screen bg-black-800 text-cyan-500">
+        <p className="text-xl font-semibold">Patient Profile Not Found</p>
+      </div>
+    );
+  }
 
-            <div className="w-full xl:w-3/4 min-w-0">
+  const SmallCard = ({ label, value }: { label: string; value: string }) => (
+    <div className="min-w-0 flex-shrink-0">
+      <span className="text-sm text-cyan-400/70 block">{label}</span>
+      <p className="text-sm md:text-base capitalize text-amber-400/90 break-words">
+        {value}
+      </p>
+    </div>
+  );
 
-                <div className="w-full flex flex-col lg:flex-row gap-4 max-w-7xl mx-auto">
+  return (
+    <div className="min-h-screen bg-black-800 border-gray-800 rounded-xl py-4 px-3 sm:py-6 sm:px-4 2xl:p-6 flex flex-col xl:flex-row gap-4 sm:gap-6 border border-cyan-500/30 shadow-lg">
+      <div className="w-full xl:w-3/4 min-w-0">
+        <div className="w-full flex flex-col lg:flex-row gap-4 max-w-7xl mx-auto">
+          <Card className="bg-gradient-to-b from-blue-950/90 to-slate-950 rounded-xl p-4 w-full lg:w-80 lg:flex-shrink-0 border border-cyan-700/30 shadow-md flex flex-col items-center backdrop-blur-sm">
+            <ProfileImage
+              url={data?.img || ""}
+              name={data?.first_name + " " + data?.last_name}
+              className="h-16 w-16 sm:h-20 sm:w-20 md:flex ring-2 ring-cyan-400 ring-offset-2 ring-offset-blue-950 shadow-[0_0_15px_rgba(54,238,255,0.4)]"
+              textClassName="text-2xl sm:text-3xl"
+            />
 
-                    <Card className="bg-gradient-to-b from-blue-950/90 to-slate-950 rounded-xl p-4 w-full lg:w-80 lg:flex-shrink-0 border border-cyan-700/30 shadow-md flex flex-col items-center backdrop-blur-sm">
+            <h1 className="font-semibold text-xl sm:text-2xl mt-2 text-cyan-100 tracking-wider text-center break-words">
+              {data?.first_name + " " + data?.last_name}
+            </h1>
 
-                        <ProfileImage
-                            url={data?.img || ""}
-                            name={data?.first_name + " " + data?.last_name}
-                            className="h-16 w-16 sm:h-20 sm:w-20 md:flex ring-2 ring-cyan-400 ring-offset-2 ring-offset-blue-950 shadow-[0_0_15px_rgba(54,238,255,0.4)]"
-                            textClassName="text-2xl sm:text-3xl"
-                        />
+            <span className="text-sm text-cyan-300/70 text-center break-all">
+              {data?.email}
+            </span>
 
-                        <h1 className="font-semibold text-xl sm:text-2xl mt-2 text-cyan-100 tracking-wider text-center break-words">
-                            {data?.first_name + " " + data?.last_name}
-                        </h1>
+            <div className="w-full flex items-center justify-center gap-2 mt-4">
+              <div className="w-1/2 space-y-1 text-center">
+                <p className="text-xl font-medium text-amber-400/90">
+                  {data?.totalAppointments}
+                </p>
+                <span className="text-xs text-cyan-400/70">Appointments</span>
+              </div>
+            </div>
+          </Card>
 
-                        <span className="text-sm text-cyan-300/70 text-center break-all">{data?.email}</span>
+          <Card className="bg-gradient-to-br from-indigo-950/30 to-indigo-900/20 rounded-xl p-4 sm:p-6 w-full lg:flex-1 lg:max-w-4xl border border-indigo-700/30 shadow-md space-y-4 sm:space-y-6 backdrop-blur-sm min-w-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <SmallCard
+                label={"Gender"}
+                value={data?.gender?.toLowerCase() || "N/A"}
+              />
+              <SmallCard
+                label={"Date of Birth"}
+                value={
+                  data.date_of_birth
+                    ? formatDate(data.date_of_birth, "yyyy-MM-dd")
+                    : "N/A"
+                }
+              />
+              <SmallCard label={"Phone Number"} value={data?.phone || "N/A"} />
+            </div>
 
-                        <div className="w-full flex items-center justify-center gap-2 mt-4">
-                            <div className="w-1/2 space-y-1 text-center">
-                                <p className="text-xl font-medium text-amber-400/90">{data?.totalAppointments}</p>
-                                <span className="text-xs text-cyan-400/70">Appointments</span>
-                            </div>
-                        </div>
-                    </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <SmallCard
+                label={"Marital Status"}
+                value={data?.marital_status || "N/A"}
+              />
+              <SmallCard
+                label={"Blood Group"}
+                value={data?.blood_group || "N/A"}
+              />
+              <SmallCard label={"Address"} value={data?.address || "N/A"} />
+            </div>
 
-                    <Card className="bg-gradient-to-br from-indigo-950/30 to-indigo-900/20 rounded-xl p-4 sm:p-6 w-full lg:flex-1 lg:max-w-4xl border border-indigo-700/30 shadow-md space-y-4 sm:space-y-6 backdrop-blur-sm min-w-0">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <SmallCard label={"Gender"} value={data?.gender?.toLowerCase() || "N/A"} />
-                            <SmallCard label={"Date of Birth"} value={data.date_of_birth ? formatDate(data.date_of_birth, "yyyy-MM-dd") : "N/A"} />
-                            <SmallCard label={"Phone Number"} value={data?.phone || "N/A"} />
-                        </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <SmallCard
+                label={"Emergency Contact Name"}
+                value={data?.emergency_contact_name || "N/A"}
+              />
+              <SmallCard
+                label={"Emergency Contact Number"}
+                value={data?.emergency_contact_number || "N/A"}
+              />
+              <SmallCard
+                label={"Last Visit Date"}
+                value={
+                  data?.lastVisit
+                    ? format(data.lastVisit, "yyyy-MM-dd")
+                    : "No recorded visit"
+                }
+              />
+            </div>
+          </Card>
+        </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <SmallCard label={"Marital Status"} value={data?.marital_status || "N/A"} />
-                            <SmallCard label={"Blood Group"} value={data?.blood_group || "N/A"} />
-                            <SmallCard label={"Address"} value={data?.address || "N/A"} />
-                        </div>
+        <div className="mt-6 sm:mt-10 min-w-0">
+          {category === "medical-history" && (
+            <MedicalHistoryContainer patientId={id} />
+          )}
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                            <SmallCard label={"Emergency Contact Name"} value={data?.emergency_contact_name || "N/A"} />
-                            <SmallCard label={"Emergency Contact Number"} value={data?.emergency_contact_number || "N/A"} />
-                            <SmallCard label={"Last Visit Date"} value={data?.lastVisit ? format(data.lastVisit, "yyyy-MM-dd") : "No recorded visit"} />
-                        </div>
-                    </Card>
-
-                </div>
-
-                <div className="mt-6 sm:mt-10 min-w-0">
-                    {
-                        category === "medical-history" && <MedicalHistoryContainer patientId={id} />
-                    }
-
-                    {/*
+          {/*
             {
                 category === "payments" && <Payments patientId={id!} />
             }
             */}
-                </div>
-
-            </div>
-
-            <div className="w-full xl:w-1/3 xl:max-w-sm min-w-0">
-
-                <div className="bg-gradient-to-b from-blue-950/90 to-slate-950 p-4 rounded-xl mb-6 sm:mb-8 border border-cyan-700/30 shadow-md">
-
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="h-6 w-1 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(54,238,255,0.6)] flex-shrink-0"></div>
-                        <h1 className="text-lg sm:text-xl font-semibold text-cyan-100 tracking-wider">Quick Links</h1>
-                    </div>
-
-                    <div className="mt-4 flex gap-2 sm:gap-4 flex-wrap text-xs">
-                        <Link
-                            className="p-2 sm:p-3 rounded-md bg-cyan-900/40 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(54,238,255,0.3)] text-center break-words"
-                            href={`/record/appointments?id=${id}`}
-                        >
-                            Patient&apos;s Appointments
-                        </Link>
-                        <VisuallyHidden>
-                            <Link
-                                className="p-2 sm:p-3 rounded-md bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(99,102,241,0.3)]"
-                                href="?category=medical-history"
-                            >
-                                Medical Records
-                            </Link>
-                        </VisuallyHidden>
-                        <VisuallyHidden>
-                            <Link
-                                className="p-2 sm:p-3 rounded-md bg-purple-900/40 hover:bg-purple-900/60 text-purple-300 border border-purple-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(147,51,234,0.3)]"
-                                href={`?category=payments`}
-                            >
-                                Medical Bills
-                            </Link>
-                        </VisuallyHidden>
-
-                        <Link className="p-2 sm:p-3 rounded-md bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(16,185,129,0.3)]" href={`/`}>
-                            Dashboard
-                        </Link>
-
-                        <VisuallyHidden>
-                            <Link className="p-2 sm:p-3 rounded-md bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(225,29,72,0.3)]" href={`#`}>
-                                Lab Test & Result
-                            </Link>
-                        </VisuallyHidden>
-                        {patientId === "self" && (
-                            <Link
-                                className="p-2 sm:p-3 rounded-md bg-amber-900/40 hover:bg-amber-900/60 text-amber-300 border border-amber-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(245,158,11,0.3)] text-center break-words"
-                                href={`/patient/registration`}
-                            >
-                                Edit Profile Information
-                            </Link>
-                        )}
-
-                    </div>
-
-                </div>
-
-                <PatientRatingContainer id={id} />
-            </div>
-
         </div>
-    )
-}
+      </div>
 
-export default PatientProfilePage
+      <div className="w-full xl:w-1/3 xl:max-w-sm min-w-0">
+        <div className="bg-gradient-to-b from-blue-950/90 to-slate-950 p-4 rounded-xl mb-6 sm:mb-8 border border-cyan-700/30 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-6 w-1 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(54,238,255,0.6)] flex-shrink-0"></div>
+            <h1 className="text-lg sm:text-xl font-semibold text-cyan-100 tracking-wider">
+              Quick Links
+            </h1>
+          </div>
+
+          <div className="mt-4 flex gap-2 sm:gap-4 flex-wrap text-xs">
+            <Link
+              className="p-2 sm:p-3 rounded-md bg-cyan-900/40 hover:bg-cyan-900/60 text-cyan-300 border border-cyan-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(54,238,255,0.3)] text-center break-words"
+              href={`/record/appointments?pid=${encrypt(id)}`}
+            >
+              Patient&apos;s Appointments
+            </Link>
+            <VisuallyHidden>
+              <Link
+                className="p-2 sm:p-3 rounded-md bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 border border-indigo-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(99,102,241,0.3)]"
+                href="?category=medical-history"
+              >
+                Medical Records
+              </Link>
+            </VisuallyHidden>
+            <VisuallyHidden>
+              <Link
+                className="p-2 sm:p-3 rounded-md bg-purple-900/40 hover:bg-purple-900/60 text-purple-300 border border-purple-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(147,51,234,0.3)]"
+                href={`?category=payments`}
+              >
+                Medical Bills
+              </Link>
+            </VisuallyHidden>
+
+            <Link
+              className="p-2 sm:p-3 rounded-md bg-emerald-900/40 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+              href={`/`}
+            >
+              Dashboard
+            </Link>
+
+            <VisuallyHidden>
+              <Link
+                className="p-2 sm:p-3 rounded-md bg-rose-900/40 hover:bg-rose-900/60 text-rose-300 border border-rose-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(225,29,72,0.3)]"
+                href={`#`}
+              >
+                Lab Test & Result
+              </Link>
+            </VisuallyHidden>
+            {patientId === "self" && (
+              <Link
+                className="p-2 sm:p-3 rounded-md bg-amber-900/40 hover:bg-amber-900/60 text-amber-300 border border-amber-700/50 transition-colors duration-200 shadow-inner hover:shadow-[0_0_8px_rgba(245,158,11,0.3)] text-center break-words"
+                href={`/patient/registration`}
+              >
+                Edit Profile Information
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <PatientRatingContainer id={id} />
+      </div>
+    </div>
+  );
+};
+
+export default PatientProfilePage;

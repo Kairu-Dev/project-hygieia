@@ -1,62 +1,73 @@
 import { withSentryConfig } from "@sentry/nextjs";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 import type { NextConfig } from "next";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const nextConfig: NextConfig = {
-
   poweredByHeader: false,
 
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         headers: [
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          // CSP - adjust based on your CDN/script sources
+          {
+            key: "Content-Security-Policy",
+            value:
+              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.sentry.io https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com; frame-src 'self' https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com; worker-src 'self' blob:;",
+          },
         ],
       },
     ];
   },
 
-  experimental: {
-  },
+  experimental: {},
 
   webpack: (config, { dev }) => {
     if (dev) {
-      config.infrastructureLogging = { level: 'error' };
+      config.infrastructureLogging = { level: "error" };
 
       // Keep file cache but make it more reliable
       config.cache = {
-        type: 'filesystem',
+        type: "filesystem",
         buildDependencies: {
-          config: [__filename]
-        }
+          config: [__filename],
+        },
       };
 
       config.watchOptions = {
         ...config.watchOptions,
         ignored: [
-          '**/node_modules/**',
-          '**/.git/**',
-          '**/C:/DumpStack.log.tmp',
-          '**/C:/pagefile.sys',
-          '**/C:/hiberfil.sys',
-          '**/C:/swapfile.sys'
-        ]
+          "**/node_modules/**",
+          "**/.git/**",
+          "**/C:/DumpStack.log.tmp",
+          "**/C:/pagefile.sys",
+          "**/C:/hiberfil.sys",
+          "**/C:/swapfile.sys",
+        ],
       };
     }
     return config;
   },
   async rewrites() {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       return [
         {
-          source: '/sentry-example-page',
-          destination: '/404',
+          source: "/sentry-example-page",
+          destination: "/404",
         },
       ];
     }

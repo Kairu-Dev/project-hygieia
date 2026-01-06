@@ -20,10 +20,12 @@ import { CustomInput, SwitchInput } from "../custom-input";
 import { Label } from "../ui/label";
 import { toast } from "sonner";
 import { DoctorSchema } from "@/lib/validation";
-import { createNewDoctor, sendWelcomeDoctorEmailAction } from "@/app/actions/admin-action";
+import {
+  createNewDoctor,
+  sendWelcomeDoctorEmailAction,
+} from "@/app/actions/admin-action";
 import { SPECIALIZATION } from "@/utils/setting";
-/* eslint-disable */
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const TYPES = [
   { label: "Full-Time", value: "FULL" },
@@ -67,8 +69,6 @@ export const DoctorForm = () => {
     },
   });
 
-
-
   const handleSubmit = async (values: z.infer<typeof DoctorSchema>) => {
     try {
       if (workSchedule.length === 0) {
@@ -79,10 +79,10 @@ export const DoctorForm = () => {
       setIsLoading(true);
       const resp = await createNewDoctor({
         ...values,
-        work_schedule: workSchedule.map(day => ({
+        work_schedule: workSchedule.map((day) => ({
           day: day.day,
           start_time: day.start_time || "09:00",
-          close_time: day.close_time || "17:00"
+          close_time: day.close_time || "17:00",
         })),
       });
 
@@ -106,10 +106,10 @@ export const DoctorForm = () => {
             toast.success("Welcome email sent to doctor successfully!");
           } else {
             toast.error("Doctor added but failed to send welcome email");
-            console.error("Email error:", emailResult.error);
+            console.error("Failed to send welcome email - check server logs");
           }
         } catch (emailError) {
-          console.error("Failed to send welcome email:", emailError);
+          console.error("Failed to send welcome email - check server logs");
           toast.error("Doctor added but failed to send welcome email");
         }
 
@@ -120,7 +120,9 @@ export const DoctorForm = () => {
         toast.error(resp.message);
       }
     } catch (error) {
-      console.log(error);
+      console.error(
+        "An error occurred during doctor creation - check server logs"
+      );
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
@@ -160,7 +162,9 @@ export const DoctorForm = () => {
 
         <SheetHeader className="relative">
           <div className="absolute -left-4 top-4 h-6 w-1 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,0.8)]"></div>
-          <SheetTitle className="text-xl font-mono uppercase tracking-wider text-emerald-100 pl-2">Add New Doctor</SheetTitle>
+          <SheetTitle className="text-xl font-mono uppercase tracking-wider text-emerald-100 pl-2">
+            Add New Doctor
+          </SheetTitle>
         </SheetHeader>
 
         <div className="relative z-10">
@@ -240,7 +244,6 @@ export const DoctorForm = () => {
                     name="phone"
                     placeholder="9225600735"
                     label="Contact Number"
-
                   />
                 </div>
               </div>
@@ -267,7 +270,9 @@ export const DoctorForm = () => {
               </div>
 
               <div className="mt-6 bg-gradient-to-b from-emerald-50/10 to-emerald-900/20 p-4 rounded-lg border border-emerald-500/30 shadow-sm">
-                <Label className="text-emerald-200 font-medium mb-2 block">Working Days</Label>
+                <Label className="text-emerald-200 font-medium mb-2 block">
+                  Working Days
+                </Label>
 
                 <SwitchInput
                   data={WORKING_DAYS}
@@ -291,7 +296,8 @@ export const DoctorForm = () => {
   );
 };
 
-{/* 
+{
+  /* 
 
 "use client";
 
@@ -524,4 +530,5 @@ export const DoctorForm = () => {
   );
 };
 
-*/}
+*/
+}

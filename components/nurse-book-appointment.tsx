@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn, generateDynamicTimes } from "@/lib/utils";
@@ -22,7 +26,14 @@ import { useRouter } from "next/navigation";
 import { SubmitHandler, useForm } from "react-hook-form";
 
 import { Button } from "./ui/button";
-import { UserPen, Activity, AlertTriangle, HeartPulse, Stethoscope, UserCheck } from "lucide-react";
+import {
+  UserPen,
+  Activity,
+  AlertTriangle,
+  HeartPulse,
+  Stethoscope,
+  UserCheck,
+} from "lucide-react";
 import { z } from "zod";
 import {
   Form,
@@ -43,13 +54,13 @@ import {
 } from "./ui/select";
 import { toast } from "sonner";
 import { createNewAppointment } from "@/app/actions/appointment";
-import AppointmentPriorityAnalyzer from './AppointmentPriorityAnalyzer';
-import { getDoctorLoadFactors } from '@/app/actions/doctor-load';
-import { getDoctorWorkingDays } from '@/app/actions/doctor-schedule';
-import TimeSlotSelector from './TimeSlotSelector';
+import AppointmentPriorityAnalyzer from "./AppointmentPriorityAnalyzer";
+import { getDoctorLoadFactors } from "@/app/actions/doctor-load";
+import { getDoctorWorkingDays } from "@/app/actions/doctor-schedule";
+import TimeSlotSelector from "./TimeSlotSelector";
 
 const EnhancedAppointmentSchema = AppointmentSchema.extend({
-  priority_level: z.enum(['NORMAL', 'URGENT', 'EMERGENCY']).default('NORMAL'),
+  priority_level: z.enum(["NORMAL", "URGENT", "EMERGENCY"]).default("NORMAL"),
   priority_score: z.number().default(0),
   department: z.string().optional(),
   priority_override: z.boolean().default(false),
@@ -78,8 +89,8 @@ const formatDateWithUserTimezone = (date: Date | undefined) => {
   if (!date) return "";
 
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 };
@@ -89,16 +100,14 @@ const getUserTimezoneInfo = () => {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const offsetMinutes = new Date().getTimezoneOffset();
   const offsetHours = Math.abs(offsetMinutes / 60);
-  const offsetSign = offsetMinutes <= 0 ? '+' : '-';
+  const offsetSign = offsetMinutes <= 0 ? "+" : "-";
 
   return {
     timezone,
     offset: `UTC${offsetSign}${offsetHours}`,
-    isPhilippines: timezone === 'Asia/Manila'
+    isPhilippines: timezone === "Asia/Manila",
   };
 };
-
-
 
 // Custom Calendar Date Picker Component
 const CalendarDatePicker = ({
@@ -108,7 +117,7 @@ const CalendarDatePicker = ({
   disabled = false,
   className = "",
   selectedDoctorId,
-  doctorWorkingDays
+  doctorWorkingDays,
 }: {
   value?: Date;
   onChange: (date: Date | undefined) => void;
@@ -116,7 +125,7 @@ const CalendarDatePicker = ({
   disabled?: boolean;
   className?: string;
   selectedDoctorId?: string;
-  doctorWorkingDays?: { day: string; start_time: string; close_time: string; }[];
+  doctorWorkingDays?: { day: string; start_time: string; close_time: string }[];
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const timezoneInfo = getUserTimezoneInfo();
@@ -135,22 +144,36 @@ const CalendarDatePicker = ({
 
     if (checkDate > maxDate) return true;
 
-    if (!selectedDoctorId || !doctorWorkingDays || doctorWorkingDays.length === 0) {
+    if (
+      !selectedDoctorId ||
+      !doctorWorkingDays ||
+      doctorWorkingDays.length === 0
+    ) {
       return checkDate < today;
     }
 
-    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayNames = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
     const dayOfWeek = dayNames[checkDate.getDay()].toLowerCase();
 
     const doctorWorkingDay = doctorWorkingDays.find(
-      workingDay => workingDay.day.toLowerCase() === dayOfWeek
+      (workingDay) => workingDay.day.toLowerCase() === dayOfWeek
     );
 
     if (!doctorWorkingDay) return true;
     if (checkDate < today) return true;
 
     if (checkDate.getTime() === today.getTime()) {
-      const [closeHour, closeMinute] = doctorWorkingDay.close_time.split(':').map(Number);
+      const [closeHour, closeMinute] = doctorWorkingDay.close_time
+        .split(":")
+        .map(Number);
       const closingTime = new Date();
       closingTime.setHours(closeHour, closeMinute, 0, 0);
 
@@ -217,24 +240,31 @@ const CalendarDatePicker = ({
               initialFocus
               className="rounded-md border-0"
               classNames={{
-                months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                months:
+                  "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
                 month: "space-y-4",
-                caption: "flex justify-center pt-1 relative items-center text-blue-300",
+                caption:
+                  "flex justify-center pt-1 relative items-center text-blue-300",
                 caption_label: "text-sm font-medium text-blue-300",
                 nav: "space-x-1 flex items-center",
-                nav_button: "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-blue-300 hover:bg-blue-800/50 rounded-md transition-colors",
+                nav_button:
+                  "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100 text-blue-300 hover:bg-blue-800/50 rounded-md transition-colors",
                 nav_button_previous: "absolute left-1",
                 nav_button_next: "absolute right-1",
                 table: "w-full border-collapse space-y-1",
                 head_row: "flex",
-                head_cell: "text-blue-300/80 rounded-md w-9 font-normal text-[0.8rem]",
+                head_cell:
+                  "text-blue-300/80 rounded-md w-9 font-normal text-[0.8rem]",
                 row: "flex w-full mt-2",
                 cell: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
                 day: "h-9 w-9 p-0 font-normal text-blue-100 hover:bg-blue-700/60 hover:text-blue-50 rounded-md cursor-pointer transition-colors aria-selected:opacity-100",
-                day_selected: "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
+                day_selected:
+                  "bg-blue-600 text-white hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white",
                 day_today: "bg-blue-800/80 text-blue-300 font-semibold",
-                day_outside: "text-blue-500/50 opacity-50 aria-selected:bg-blue-600/50 aria-selected:text-white aria-selected:opacity-30",
-                day_disabled: "text-blue-600/30 opacity-30 cursor-not-allowed hover:bg-transparent",
+                day_outside:
+                  "text-blue-500/50 opacity-50 aria-selected:bg-blue-600/50 aria-selected:text-white aria-selected:opacity-30",
+                day_disabled:
+                  "text-blue-600/30 opacity-30 cursor-not-allowed hover:bg-transparent",
                 day_hidden: "invisible",
               }}
             />
@@ -249,12 +279,14 @@ export const NurseBookAppointment = ({
   patient,
   doctors,
   nurseId,
-  nurseName = "Nurse"
+  nurseName = "Nurse",
 }: NurseBookAppointmentProps) => {
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPriorityAnalyzer, setShowPriorityAnalyzer] = useState(false);
-  const [doctorLoadFactors, setDoctorLoadFactors] = useState<Record<string, number>>({});
+  const [doctorLoadFactors, setDoctorLoadFactors] = useState<
+    Record<string, number>
+  >({});
   const [priorityInfo, setPriorityInfo] = useState<{
     level: PriorityLevel;
     score: number;
@@ -262,12 +294,16 @@ export const NurseBookAppointment = ({
   } | null>(null);
   const router = useRouter();
   const [physicians, setPhysicians] = useState<Doctor[] | undefined>(doctors);
-  const [doctorWorkingDays, setDoctorWorkingDays] = useState<{
-    day: string;
-    start_time: string;
-    close_time: string;
-  }[]>([]);
-  const [availableTimes, setAvailableTimes] = useState<{ label: string, value: string }[]>([]);
+  const [doctorWorkingDays, setDoctorWorkingDays] = useState<
+    {
+      day: string;
+      start_time: string;
+      close_time: string;
+    }[]
+  >([]);
+  const [availableTimes, setAvailableTimes] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [loadingWorkingDays, setLoadingWorkingDays] = useState(false);
   const [isFormReady, setIsFormReady] = useState(false);
 
@@ -294,21 +330,21 @@ export const NurseBookAppointment = ({
           bg: "bg-red-900/30",
           border: "border-red-500/50",
           text: "text-red-400",
-          icon: <AlertTriangle className="h-5 w-5 text-red-400" />
+          icon: <AlertTriangle className="h-5 w-5 text-red-400" />,
         };
       case PriorityLevel.URGENT:
         return {
           bg: "bg-amber-900/30",
           border: "border-amber-500/50",
           text: "text-amber-400",
-          icon: <Activity className="h-5 w-5 text-amber-400" />
+          icon: <Activity className="h-5 w-5 text-amber-400" />,
         };
       default:
         return {
           bg: "bg-blue-900/30",
           border: "border-blue-500/50",
           text: "text-blue-400",
-          icon: <HeartPulse className="h-5 w-5 text-blue-400" />
+          icon: <HeartPulse className="h-5 w-5 text-blue-400" />,
         };
     }
   };
@@ -316,7 +352,7 @@ export const NurseBookAppointment = ({
   useEffect(() => {
     if (doctors.length > 0) {
       const fetchLoadFactors = async () => {
-        const doctorIds = doctors.map(d => d.id);
+        const doctorIds = doctors.map((d) => d.id);
         const result = await getDoctorLoadFactors(doctorIds);
         if (result.success) {
           setDoctorLoadFactors(result.loadFactors);
@@ -354,7 +390,7 @@ export const NurseBookAppointment = ({
             setDoctorWorkingDays([]);
           }
         } catch (error) {
-          console.error('Error fetching doctor working days:', error);
+          console.error("Error fetching doctor working days:", error);
           setDoctorWorkingDays([]);
         } finally {
           setLoadingWorkingDays(false);
@@ -378,38 +414,62 @@ export const NurseBookAppointment = ({
     if (selectedDate && selectedDoctorId && doctorWorkingDays.length > 0) {
       try {
         const date = new Date(selectedDate);
-        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayNames = [
+          "sunday",
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+        ];
         const dayOfWeek = dayNames[date.getDay()].toLowerCase();
 
         const workingDay = doctorWorkingDays.find(
-          wd => wd.day.toLowerCase() === dayOfWeek
+          (wd) => wd.day.toLowerCase() === dayOfWeek
         );
 
         if (workingDay) {
-          const times = generateDynamicTimes(workingDay.start_time, workingDay.close_time, 30);
+          const times = generateDynamicTimes(
+            workingDay.start_time,
+            workingDay.close_time,
+            30
+          );
           setAvailableTimes(times);
         } else {
           setAvailableTimes([]);
         }
       } catch (error) {
-        console.error('Error generating available times:', error);
+        console.error(
+          "Error generating available times:",
+          error instanceof Error ? error.message : "Unknown error"
+        );
         setAvailableTimes([]);
       }
     } else {
       setAvailableTimes([]);
     }
+  }, [selectedDate, selectedDoctorId, doctorWorkingDays]);
 
+  // Separate effect to validate time selection against available times
+  useEffect(() => {
     const currentTime = form.getValues("time");
     if (currentTime && availableTimes.length > 0) {
-      const isTimeStillValid = availableTimes.some(time => time.value === currentTime);
+      const isTimeStillValid = availableTimes.some(
+        (time) => time.value === currentTime
+      );
       if (!isTimeStillValid) {
         form.setValue("time", "");
       }
-    } else if (currentTime && availableTimes.length === 0 && !loadingWorkingDays) {
+    } else if (
+      currentTime &&
+      availableTimes.length === 0 &&
+      !loadingWorkingDays
+    ) {
       // If no times available but time is selected, clear it
       form.setValue("time", "");
     }
-  }, [selectedDate, selectedDoctorId, doctorWorkingDays, form]);
+  }, [availableTimes, form, loadingWorkingDays]);
 
   // Effect to set form ready state
   useEffect(() => {
@@ -436,7 +496,7 @@ export const NurseBookAppointment = ({
     setPriorityInfo({
       level,
       score,
-      department: suggestedDepartment
+      department: suggestedDepartment,
     });
 
     // Reset states
@@ -453,7 +513,7 @@ export const NurseBookAppointment = ({
         setDoctorWorkingDays([]);
       }
     } catch (error) {
-      console.error('Error fetching priority doctor working days:', error);
+      console.error("Error fetching priority doctor working days:", error);
       setDoctorWorkingDays([]);
     } finally {
       setLoadingWorkingDays(false);
@@ -461,11 +521,13 @@ export const NurseBookAppointment = ({
 
     setIsFormReady(true);
     toast.success(`Priority set to ${level} (Score: ${score})`, {
-      id: "priority-update"
+      id: "priority-update",
     });
   };
 
-  const onSubmit: SubmitHandler<z.infer<typeof EnhancedAppointmentSchema>> = async (values) => {
+  const onSubmit: SubmitHandler<
+    z.infer<typeof EnhancedAppointmentSchema>
+  > = async (values) => {
     try {
       setIsSubmitting(true);
 
@@ -482,9 +544,9 @@ export const NurseBookAppointment = ({
             priority_score: values.priority_score,
             priority_level: values.priority_level,
             notes: `Auto-assigned priority: ${values.priority_level} (Booked by ${nurseName})`,
-            patient_id: patient?.id!
-          }
-        }
+            patient_id: patient?.id!,
+          },
+        },
       };
 
       const res = await createNewAppointment(newData);
@@ -497,7 +559,10 @@ export const NurseBookAppointment = ({
         toast.success(`Appointment booked successfully for ${patientName}`);
       }
     } catch (error) {
-      console.error('Appointment creation failed:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        "Appointment creation failed:",
+        error instanceof Error ? error.message : "Unknown error"
+      );
       toast.error("Something went wrong. Try again later.");
     } finally {
       setIsSubmitting(false);
@@ -516,7 +581,8 @@ export const NurseBookAppointment = ({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="
+      <DialogContent
+        className="
   bg-slate-900 
   border-slate-700 
   text-slate-100 
@@ -541,14 +607,13 @@ export const NurseBookAppointment = ({
   m-0
   sm:m-auto
   overflow-hidden
-">
-
-
-
+"
+      >
         {!loading && (
           <>
             {/* Header - Fixed */}
-            <DialogHeader className="
+            <DialogHeader
+              className="
   flex-shrink-0 
   border-b 
   border-slate-700 
@@ -558,17 +623,18 @@ export const NurseBookAppointment = ({
   sm:mb-4
   px-1
   sm:px-0
-">
-
-              <DialogTitle className="
+"
+            >
+              <DialogTitle
+                className="
   text-slate-100 
   text-lg
   sm:text-xl
   md:text-2xl
   font-semibold
   flex items-center gap-2
-">
-
+"
+              >
                 <UserCheck className="h-6 w-6 text-blue-400" />
                 Book Appointment for {patientName}
               </DialogTitle>
@@ -579,7 +645,8 @@ export const NurseBookAppointment = ({
             </DialogHeader>
 
             {/* Scrollable Content */}
-            <div className="
+            <div
+              className="
   flex-1 
   overflow-y-auto 
   px-1
@@ -589,16 +656,16 @@ export const NurseBookAppointment = ({
   scrollbar-track-slate-800 
   scrollbar-thumb-slate-600 
   hover:scrollbar-thumb-slate-500
-">
-
+"
+            >
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-3 sm:space-y-6"
                 >
-
                   {/* Patient Info Section */}
-                  <div className="
+                  <div
+                    className="
   w-full 
   rounded-md
   sm:rounded-lg 
@@ -611,9 +678,8 @@ export const NurseBookAppointment = ({
   items-center 
   gap-2
   sm:gap-4
-">
-
-
+"
+                  >
                     <ProfileImage
                       url={patient?.img!}
                       name={patientName}
@@ -662,14 +728,16 @@ export const NurseBookAppointment = ({
 
                   {/* Priority Analyzer */}
                   {showPriorityAnalyzer && (
-                    <div className="
+                    <div
+                      className="
  border 
  rounded-lg 
  p-3
  sm:p-4 
  bg-slate-800 
  border-slate-700
-">
+"
+                    >
                       <h3 className="text-sm font-medium text-slate-200 mb-3 flex items-center gap-2">
                         <Activity className="h-4 w-4" />
                         Priority Analysis
@@ -688,21 +756,26 @@ export const NurseBookAppointment = ({
                   {priorityInfo && (
                     <div className="space-y-4">
                       {/* Priority Display */}
-                      <div className={`
+                      <div
+                        className={`
   p-3 
   rounded-lg 
   border 
   ${getPriorityClasses(priorityInfo.level).bg}
   ${getPriorityClasses(priorityInfo.level).border}
   flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3
-`}>
+`}
+                      >
                         {getPriorityClasses(priorityInfo.level).icon}
                         <div>
-                          <p className={`font-medium ${getPriorityClasses(priorityInfo.level).text}`}>
+                          <p
+                            className={`font-medium ${getPriorityClasses(priorityInfo.level).text}`}
+                          >
                             Priority: {priorityInfo.level}
                           </p>
                           <p className="text-xs text-slate-400">
-                            Score: {priorityInfo.score} | Department: {priorityInfo.department}
+                            Score: {priorityInfo.score} | Department:{" "}
+                            {priorityInfo.department}
                           </p>
                         </div>
                       </div>
@@ -716,11 +789,13 @@ export const NurseBookAppointment = ({
                             </div>
                           ) : doctorWorkingDays.length > 0 ? (
                             <div className="text-xs text-slate-400 bg-slate-800 p-2 rounded">
-                              Available days: {doctorWorkingDays.map(wd => wd.day).join(', ')}
+                              Available days:{" "}
+                              {doctorWorkingDays.map((wd) => wd.day).join(", ")}
                             </div>
                           ) : (
                             <div className="text-xs text-amber-300 bg-amber-900/20 p-2 rounded border border-amber-800">
-                              No working days set for this doctor. Please contact admin.
+                              No working days set for this doctor. Please
+                              contact admin.
                             </div>
                           )}
                         </div>
@@ -737,9 +812,15 @@ export const NurseBookAppointment = ({
                             </FormLabel>
                             <FormControl>
                               <CalendarDatePicker
-                                value={field.value ? new Date(field.value) : undefined}
+                                value={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
                                 onChange={(date) => {
-                                  field.onChange(formatDateWithUserTimezone(date));
+                                  field.onChange(
+                                    formatDateWithUserTimezone(date)
+                                  );
                                 }}
                                 placeholder={
                                   loadingWorkingDays
@@ -768,13 +849,7 @@ export const NurseBookAppointment = ({
                               <TimeSlotSelector
                                 selectedDoctorId={selectedDoctorId}
                                 selectedDate={selectedDate}
-                                availableTimes={doctorWorkingDays.length > 0 && selectedDate ? (() => {
-                                  const date = new Date(selectedDate);
-                                  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                                  const dayOfWeek = dayNames[date.getDay()].toLowerCase();
-                                  const workingDay = doctorWorkingDays.find(wd => wd.day.toLowerCase() === dayOfWeek);
-                                  return workingDay ? generateDynamicTimes(workingDay.start_time, workingDay.close_time, 30) : [];
-                                })() : []}
+                                availableTimes={availableTimes}
                                 selectedTime={field.value}
                                 onTimeSelect={field.onChange}
                                 disabled={isSubmitting || loadingWorkingDays}
@@ -792,7 +867,8 @@ export const NurseBookAppointment = ({
             </div>
 
             {/* Footer - Fixed */}
-            <div className="
+            <div
+              className="
   flex-shrink-0 
   border-t 
   border-slate-700 
@@ -805,8 +881,8 @@ export const NurseBookAppointment = ({
   bg-slate-900
   sticky
   bottom-0
-">
-
+"
+            >
               <Button
                 disabled={
                   isSubmitting ||
@@ -827,12 +903,13 @@ export const NurseBookAppointment = ({
     rounded-lg 
     transition-all 
     duration-200
-    ${priorityInfo?.level === PriorityLevel.EMERGENCY
-                    ? 'bg-red-600 hover:bg-red-700 text-slate-100' :
-                    priorityInfo?.level === PriorityLevel.URGENT
-                      ? 'bg-amber-600 hover:bg-amber-700 text-slate-100' :
-                      'bg-blue-600 hover:bg-blue-700 text-slate-100'
-                  }
+    ${
+      priorityInfo?.level === PriorityLevel.EMERGENCY
+        ? "bg-red-600 hover:bg-red-700 text-slate-100"
+        : priorityInfo?.level === PriorityLevel.URGENT
+          ? "bg-amber-600 hover:bg-amber-700 text-slate-100"
+          : "bg-blue-600 hover:bg-blue-700 text-slate-100"
+    }
     disabled:opacity-50 
     disabled:cursor-not-allowed 
     flex 
@@ -841,7 +918,6 @@ export const NurseBookAppointment = ({
     gap-2
   `}
               >
-
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-100 rounded-full animate-spin"></div>
@@ -869,18 +945,23 @@ export const NurseBookAppointment = ({
                     Select appointment date
                   </p>
                 )}
-                {priorityInfo && form.watch("appointment_date") && !form.watch("time") && (
-                  <p className="flex items-center gap-1">
-                    <Activity className="h-3 w-3" />
-                    Select appointment time
-                  </p>
-                )}
-                {form.formState.isValid && priorityInfo && form.watch("appointment_date") && form.watch("time") && (
-                  <p className="flex items-center gap-1 text-emerald-400">
-                    <UserCheck className="h-3 w-3" />
-                    Ready to book appointment
-                  </p>
-                )}
+                {priorityInfo &&
+                  form.watch("appointment_date") &&
+                  !form.watch("time") && (
+                    <p className="flex items-center gap-1">
+                      <Activity className="h-3 w-3" />
+                      Select appointment time
+                    </p>
+                  )}
+                {form.formState.isValid &&
+                  priorityInfo &&
+                  form.watch("appointment_date") &&
+                  form.watch("time") && (
+                    <p className="flex items-center gap-1 text-emerald-400">
+                      <UserCheck className="h-3 w-3" />
+                      Ready to book appointment
+                    </p>
+                  )}
               </div>
             </div>
           </>
