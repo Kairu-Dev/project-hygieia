@@ -20,25 +20,25 @@ export default async function Home() {
           <div className="mb-8">
             <h1 className="text-4xl md:text-5xl font-bold text-center text-white">
               Welcome to <br />
-              <span className="text-green-500 text-5-xl md:text-6xl">MEDIX IHMS</span>
+              <span className="text-green-500 text-5-xl md:text-6xl">HYGIEIA IHMS</span>
             </h1>
           </div>
 
           <div className="text-center max-w-xl flex flex-col items-center justify-center">
             <p className="mb-8 text-dark-700">
-            Web-Based Integrated Hospital Management System with Multi-Algorithms for Optimization & Automation of Healthcare Operations
+              Web-Based Integrated Hospital Management System with Multi-Algorithms for Optimization & Automation of Healthcare Operations
             </p>
 
             <div className="flex gap-4">
               {/* Check if the UserId exists = the user logs in */}
               {userId ? (
                 <>
-                
-                <Link href={`/${role}`}>
-                <Button className="shad-primary-btn">View Dashboard</Button>
-                </Link>
 
-                <UserButton />
+                  <Link href={`/${role}`}>
+                    <Button className="shad-primary-btn">View Dashboard</Button>
+                  </Link>
+
+                  <UserButton />
                 </>
               ) : (
                 <>
@@ -56,15 +56,15 @@ export default async function Home() {
         </div>
 
         <footer className="mt-8" >
-        <p className="copyright justify-items-end text-dark-600 xl:text-left">
-              © 2025 MEDIX Integrated Hospital Management System. All rights reserved.
-            </p>
+          <p className="copyright justify-items-end text-dark-600 xl:text-left">
+            © 2025 HYGIEIA Integrated Hospital Management System. All rights reserved.
+          </p>
         </footer>
 
       </div>
-      
+
       <div className="absolute top-4 right-4">
-       {/* <ModeToggle /> Broken Light Mode Disable For Now (caused by bg-dark-300 at layout find a solution to separate them) */} 
+        {/* <ModeToggle /> Broken Light Mode Disable For Now (caused by bg-dark-300 at layout find a solution to separate them) */}
       </div>
     </div>
   );

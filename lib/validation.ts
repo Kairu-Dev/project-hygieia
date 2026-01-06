@@ -1,273 +1,311 @@
 import { z } from "zod";
 
 export const PatientFormSchema = z.object({
-    first_name: z
+  first_name: z
     .string()
     .trim()
     .min(2, "First Name must be at least 2 characters")
     .max(50, "First Name must be at most 50 characters"),
-    
-    last_name: z
+
+  last_name: z
     .string()
     .trim()
     .min(2, "Last Name must be at least 2 characters")
     .max(50, "Last Name must be at most 50 characters"),
 
-    date_of_birth: z.coerce.date(),
+  date_of_birth: z.coerce.date(),
 
-    gender: z.enum(["MALE", "FEMALE"], {message: "Gender is required"}),
-    email: z.string().email("Invalid email address"),
-    phone: z
+  gender: z.enum(["MALE", "FEMALE"], { message: "Gender is required" }),
+  email: z.string().email("Invalid email address"),
+  phone: z
     .string()
     .min(1, "Phone number is required")
     .refine((phone) => {
       // Allow only digits, spaces, hyphens, parentheses, and plus sign
       const validChars = /^[\d\s\-\(\)\+]+$/.test(phone);
       if (!validChars) return false;
-      
-      const digitsOnly = phone.replace(/\D/g, '');
+
+      const digitsOnly = phone.replace(/\D/g, "");
       return digitsOnly.length >= 7 && digitsOnly.length <= 15;
     }, "Please enter a valid phone number"),
-    address: z
+  address: z
     .string()
     .min(5, "Address must be at least 5 characters")
     .max(500, "Address must be at most 500 characters"),
-    marital_status: z.enum(
-        ["married", "single", "divorced", "widowed", "separated"],
-        { message: "Marital status is required." }
-      ),
-      emergency_contact_name: z
-        .string()
-        .min(2, "Emergency contact name is required.")
-        .max(50, "Emergency contact must be at most 50 characters"),
-        emergency_contact_number: z
-        .string()
-        .refine(
-          (phone) => {
-            // Remove all non-digit characters
-            const digitsOnly = phone.replace(/\D/g, '');
-            // Check if the resulting string has 10-15 digits
-            return /^\d{10,15}$/.test(digitsOnly);
-          },
-          { message: "Please enter a valid emergency contact number" }
-        )
-        .transform((phone) => {
-          // Normalize format by removing non-digits for storage
-          const digitsOnly = phone.replace(/\D/g, '');
-          // Format with + prefix if not already present
-          return phone.startsWith('+') ? phone : `+${digitsOnly}`;
-        }),
-      relation: z.enum(["mother", "father", "husband", "wife", "other"], {
-        message: "Relations with contact person required",
-      }),
-      blood_group: z.string().optional(),
-      allergies: z.string().optional(),
-      medical_conditions: z.string().optional(),
-      medical_history: z.string().optional(),
-      insurance_provider: z.string().optional(),
-      insurance_number: z.string().optional(),
-      privacy_consent: z
-        .boolean()
-        .default(false)
-        .refine((val) => val === true, {
-          message: "You must consent to privacy in order to proceed.",
-        }),
-      service_consent: z
-        .boolean()
-        .default(false)
-        .refine((val) => val === true, {
-          message: "You must consent to the terms of service in order to proceed.",
-        }),
-      medical_consent: z
-        .boolean()
-        .default(false)
-        .refine((val) => val === true, {
-          message: "You must consent to treatment in order to proceed.",
-        }),
-      img: z.string().optional(),
-    });
-    
-    export const AppointmentSchema = z.object({
-      doctor_id: z.string().min(1, "Select physician"),
-      type: z.string().min(1, "Select type of appointment"),
-      appointment_date: z.string().min(1, "Select appointment date"),
-      time: z.string().min(1, "Select appointment time"),
-      note: z.string().optional(),
-    });
-    
-    export const DoctorSchema = z.object({
-      name: z
-        .string()
-        .trim()
-        .min(2, "Name must be at least 2 characters")
-        .max(50, "Name must be at most 50 characters"),
-        phone: z
+  marital_status: z.enum(
+    ["married", "single", "divorced", "widowed", "separated"],
+    { message: "Marital status is required." }
+  ),
+  emergency_contact_name: z
+    .string()
+    .min(2, "Emergency contact name is required.")
+    .max(50, "Emergency contact must be at most 50 characters"),
+  emergency_contact_number: z
+    .string()
+    .refine(
+      (phone) => {
+        // Remove all non-digit characters
+        const digitsOnly = phone.replace(/\D/g, "");
+        // Check if the resulting string has 10-15 digits
+        return /^\d{10,15}$/.test(digitsOnly);
+      },
+      { message: "Please enter a valid emergency contact number" }
+    )
+    .transform((phone) => {
+      // Normalize format by removing non-digits for storage
+      try {
+        const digitsOnly = phone.replace(/\D/g, "");
+        // Format with + prefix
+        return `+${digitsOnly}`;
+      } catch (error) {
+        throw new Error("Phone normalization failed");
+      }
+    }),
+  relation: z.enum(["mother", "father", "husband", "wife", "other"], {
+    message: "Relations with contact person required",
+  }),
+  blood_group: z.string().optional(),
+  allergies: z.string().optional(),
+  medical_conditions: z.string().optional(),
+  medical_history: z.string().optional(),
+  insurance_provider: z.string().optional(),
+  insurance_number: z.string().optional(),
+  privacy_consent: z
+    .boolean()
+    .default(false)
+    .refine((val) => val === true, {
+      message: "You must consent to privacy in order to proceed.",
+    }),
+  service_consent: z
+    .boolean()
+    .default(false)
+    .refine((val) => val === true, {
+      message: "You must consent to the terms of service in order to proceed.",
+    }),
+  medical_consent: z
+    .boolean()
+    .default(false)
+    .refine((val) => val === true, {
+      message: "You must consent to treatment in order to proceed.",
+    }),
+  img: z.string().optional(),
+});
+
+const PriorityAssessmentSchema = z.object({
+  create: z.object({
+    condition: z.string(),
+    appointment_type: z.string(),
+    priority_score: z.number(),
+    priority_level: z.enum(["NORMAL", "URGENT", "EMERGENCY"]),
+    notes: z.string(),
+    patient_id: z.string(),
+  }),
+});
+
+export const AppointmentSchema = z.object({
+  patient_id: z.string().min(1, "Patient ID is required"),
+  doctor_id: z.string().min(1, "Select physician"),
+  type: z.string().min(1, "Select type of appointment"),
+  appointment_date: z.string().min(1, "Select appointment date"),
+  time: z.string().min(1, "Select appointment time"),
+
+  note: z.string().optional(),
+  priority_level: z
+    .enum(["NORMAL", "URGENT", "EMERGENCY"])
+    .optional()
+    .nullable(),
+  priority_score: z.number().optional().nullable(),
+  priority_override: z.boolean().optional().nullable(),
+  booked_by: z.string().optional().nullable(),
+  priorityAssessment: PriorityAssessmentSchema.optional().nullable(),
+});
+
+export const DoctorSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be at most 50 characters"),
+  phone: z
     .string()
     .refine((phone) => /^\+\d{10,15}$/.test(phone), "Invalid phone number"),
-      email: z.string().email("Invalid email address."),
-      address: z
-        .string()
-        .min(5, "Address must be at least 5 characters")
-        .max(500, "Address must be at most 500 characters"),
-      specialization: z.string().min(2, "Specialization is required."),
-      license_number: z.string().min(2, "License number is required"),
-      type: z.enum(["FULL", "PART"], { message: "Type is required." }),
-      department: z.string().min(2, "Department is required."),
-      img: z.string().optional(),
-      password: z
-        .string()
-        .min(8, "Password must be at least 8 characters long")
-        .refine(
-          (password) => {
-            if (!password) return true; // Allow empty for optional field
-            return (
-              /[a-z]/.test(password) && // lowercase
-              /[A-Z]/.test(password) && // uppercase
-              /[0-9]/.test(password) && // number
-              /[^a-zA-Z0-9]/.test(password) // special character
-            );
-          },
-          {
-            message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-          }
-        )
-        .optional()
-        .or(z.literal("")),
-    });
-    
-    // Helper function to check password strength in real-time (for UI feedback)
-    export const checkPasswordStrength = (password: string) => {
-      const checks = {
-        length: password.length >= 8,
-        lowercase: /[a-z]/.test(password),
-        uppercase: /[A-Z]/.test(password),
-        number: /[0-9]/.test(password),
-        special: /[^a-zA-Z0-9]/.test(password),
-      };
-      
-      const passed = Object.values(checks).filter(Boolean).length;
-      const strength = passed < 3 ? 'weak' : passed < 5 ? 'medium' : 'strong';
-      
-      return {
-        checks,
-        strength,
-        isValid: passed === 5,
-        score: passed
-      };
-    };
+  email: z.string().email("Invalid email address."),
+  address: z
+    .string()
+    .min(5, "Address must be at least 5 characters")
+    .max(500, "Address must be at most 500 characters"),
+  specialization: z.string().min(2, "Specialization is required."),
+  license_number: z.string().min(2, "License number is required"),
+  type: z.enum(["FULL", "PART"], { message: "Type is required." }),
+  department: z.string().min(2, "Department is required."),
+  img: z.string().optional(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters long")
+    .refine(
+      (password) => {
+        if (!password) return true; // Allow empty for optional field
+        return (
+          /[a-z]/.test(password) && // lowercase
+          /[A-Z]/.test(password) && // uppercase
+          /[0-9]/.test(password) && // number
+          /[^a-zA-Z0-9]/.test(password) // special character
+        );
+      },
+      {
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      }
+    )
+    .optional()
+    .or(z.literal("")),
+});
 
-    export const workingDaySchema = z.object({
-      day: z.enum([
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-      ]),
-      start_time: z.string(),
-      close_time: z.string(),
-    });
-    export const WorkingDaysSchema = z.array(workingDaySchema).optional();
-    
-    export const StaffSchema = z.object({
-      name: z
-        .string()
-        .trim()
-        .min(2, "Name must be at least 2 characters")
-        .max(50, "Name must be at most 50 characters"),
-      role: z.enum(["NURSE", "LAB_TECHNICIAN"], { message: "Role is required." }),
-      phone: z
-      .string()
-      .refine((phone) => /^\+\d{10,15}$/.test(phone), "Invalid phone number"),
-      email: z.string().email("Invalid email address."),
-      address: z
-        .string()
-        .min(5, "Address must be at least 5 characters")
-        .max(500, "Address must be at most 500 characters"),
-      license_number: z.string().optional(),
-      department: z.string().optional(),
-      img: z.string().optional(),
-      password: z
-        .string()
-        .min(8, "Password must be at least 8 characters long")
-        .refine(
-          (password) => {
-            if (!password) return true; // Allow empty for optional field
-            return (
-              /[a-z]/.test(password) && // lowercase
-              /[A-Z]/.test(password) && // uppercase
-              /[0-9]/.test(password) && // number
-              /[^a-zA-Z0-9]/.test(password) // special character
-            );
-          },
-          {
-            message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-          }
-        )
-        .optional()
-        .or(z.literal("")),
-    });
-    
-    export const VitalSignsSchema = z.object({
-      patient_id: z.string(),
-      medical_id: z.string(),
-      body_temperature: z.coerce.number({
-        message: "Enter recorded body temperature",
-      }),
-      heartRate: z.string({ message: "Enter recorded heartbeat rate" }),
-      systolic: z.coerce.number({
-        message: "Enter recorded systolic blood pressure",
-      }),
-      diastolic: z.coerce.number({
-        message: "Enter recorded diastolic blood pressure",
-      }),
-      respiratory_rate: z.coerce.number().optional(),
-      oxygen_saturation: z.coerce.number().optional(),
-      weight: z.coerce.number({ message: "Enter recorded weight (Kg)" }),
-      height: z.coerce.number({ message: "Enter recorded height (Cm)" }),
-    });
-    
-    export const DiagnosisSchema = z.object({
-      patient_id: z.string(),
-      medical_id: z.string(),
-      doctor_id: z.string(),
-      symptoms: z.string({ message: "Symptoms required" }),
-      diagnosis: z.string({ message: "Diagnosis required" }),
-      notes: z.string().optional(),
-      prescribed_medications: z.string().optional(),
-      follow_up_plan: z.string().optional(),
-    });
-    
-    export const PaymentSchema = z.object({
-      id: z.string(),
-      // patient_id: z.string(),
-      // appointment_id: z.string(),
-      bill_date: z.coerce.date(),
-      // payment_date: z.string(),
-      discount: z.string({ message: "discount" }),
-      total_amount: z.string(),
-      // amount_paid: z.string(),
-    });
-    
-    export const PatientBillSchema = z.object({
-      bill_id: z.string(),
-      service_id: z.string(),
-      service_date: z.string(),
-      appointment_id: z.string(),
-      quantity: z.string({ message: "Quantity is required" }),
-      unit_cost: z.string({ message: "Unit cost is required" }),
-      total_cost: z.string({ message: "Total cost is required" }),
-    });
-    
-    export const ServicesSchema = z.object({
-      service_name: z.string({ message: "Service name is required" }),
-      price: z.string({ message: "Service price is required" }),
-      description: z.string({ message: "Service description is required" }),
+// Helper function to check password strength in real-time (for UI feedback)
+export const checkPasswordStrength = (
+  password: string
+): {
+  checks: {
+    length: boolean;
+    lowercase: boolean;
+    uppercase: boolean;
+    number: boolean;
+    special: boolean;
+  };
+  strength: "weak" | "medium" | "strong";
+  isValid: boolean;
+  score: number;
+} => {
+  const checks = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^a-zA-Z0-9]/.test(password),
+  };
 
-    });
+  const passed = Object.values(checks).filter(Boolean).length;
+  const strength = passed < 3 ? "weak" : passed < 5 ? "medium" : "strong";
 
+  return {
+    checks,
+    strength,
+    isValid: passed === 5,
+    score: passed,
+  };
+};
+
+export const workingDaySchema = z.object({
+  day: z.enum([
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday",
+  ]),
+  start_time: z.string(),
+  close_time: z.string(),
+});
+export const WorkingDaysSchema = z.array(workingDaySchema).optional();
+
+export const StaffSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be at most 50 characters"),
+  role: z.enum(["NURSE", "LAB_TECHNICIAN"], { message: "Role is required." }),
+  phone: z
+    .string()
+    .refine((phone) => /^\+\d{10,15}$/.test(phone), "Invalid phone number"),
+  email: z.string().email("Invalid email address."),
+  address: z
+    .string()
+    .min(5, "Address must be at least 5 characters")
+    .max(500, "Address must be at most 500 characters"),
+  license_number: z.string().optional(),
+  department: z.string().optional(),
+  img: z.string().optional(),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters long")
+    .refine(
+      (password) => {
+        if (!password) return true; // Allow empty for optional field
+        return (
+          /[a-z]/.test(password) && // lowercase
+          /[A-Z]/.test(password) && // uppercase
+          /[0-9]/.test(password) && // number
+          /[^a-zA-Z0-9]/.test(password) // special character
+        );
+      },
+      {
+        message:
+          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      }
+    )
+    .optional()
+    .or(z.literal("")),
+});
+
+export const VitalSignsSchema = z.object({
+  patient_id: z.string(),
+  medical_id: z.coerce.number(),
+  body_temperature: z.coerce.number({
+    message: "Enter recorded body temperature",
+  }),
+  heartRate: z.string({ message: "Enter recorded heartbeat rate" }),
+  systolic: z.coerce.number({
+    message: "Enter recorded systolic blood pressure",
+  }),
+  diastolic: z.coerce.number({
+    message: "Enter recorded diastolic blood pressure",
+  }),
+  respiratory_rate: z.coerce.number().optional(),
+  oxygen_saturation: z.coerce.number().optional(),
+  weight: z.coerce.number({ message: "Enter recorded weight (Kg)" }),
+  height: z.coerce.number({ message: "Enter recorded height (Cm)" }),
+});
+
+export const DiagnosisSchema = z.object({
+  patient_id: z.string(),
+  medical_id: z.string(),
+  doctor_id: z.string(),
+  symptoms: z.string({ message: "Symptoms required" }),
+  diagnosis: z.string({ message: "Diagnosis required" }),
+  notes: z.string().optional(),
+  prescribed_medications: z.string().optional(),
+  follow_up_plan: z.string().optional(),
+});
+
+export const PaymentSchema = z.object({
+  id: z.string(),
+  // patient_id: z.string(),
+  // appointment_id: z.string(),
+  bill_date: z.coerce.date(),
+  // payment_date: z.string(),
+  discount: z.string({ message: "discount" }),
+  total_amount: z.string(),
+  // amount_paid: z.string(),
+});
+
+export const PatientBillSchema = z.object({
+  bill_id: z.string(),
+  service_id: z.string(),
+  service_date: z.string(),
+  appointment_id: z.string(),
+  quantity: z.string({ message: "Quantity is required" }),
+  unit_cost: z.string({ message: "Unit cost is required" }),
+  total_cost: z.string({ message: "Total cost is required" }),
+});
+
+export const ServicesSchema = z.object({
+  service_name: z.string({ message: "Service name is required" }),
+  price: z.string({ message: "Service price is required" }),
+  description: z.string({ message: "Service description is required" }),
+});
 
 // Enum values matching Prisma schema
 export const ReferralStatus = {
@@ -275,24 +313,25 @@ export const ReferralStatus = {
   ACCEPTED: "ACCEPTED",
   REJECTED: "REJECTED",
   COMPLETED: "COMPLETED",
-  CANCELLED: "CANCELLED"
+  CANCELLED: "CANCELLED",
 } as const;
 
 export const ReferralUrgency = {
   ROUTINE: "ROUTINE",
   URGENT: "URGENT",
-  EMERGENCY: "EMERGENCY"
+  EMERGENCY: "EMERGENCY",
 } as const;
 
 // Referral form validation schema
-export const ReferralSchema = z.object({
+// Referral form validation schema
+export const ReferralBaseSchema = z.object({
   // Required fields
   referral_number: z.string().min(1, "Referral number is required"),
   referring_doctor_id: z.string().min(1, "Referring doctor is required"),
   referred_department: z.string().min(1, "Department is required"),
   referral_type: z.string().min(1, "Referral type is required"),
   reason_for_referral: z.string().min(1, "Reason for referral is required"),
-  
+
   // Optional fields
   referred_to_doctor_id: z.string().optional(),
   external_doctor_name: z.string().optional(),
@@ -310,24 +349,26 @@ export const ReferralSchema = z.object({
   insurance_details: z.string().optional(),
   authorization_number: z.string().optional(),
   special_instructions: z.string().optional(),
-  
+
   // Status fields with default values
-  status: z.enum(["PENDING", "ACCEPTED", "REJECTED", "COMPLETED", "CANCELLED"]).default("PENDING"),
+  status: z
+    .enum(["PENDING", "ACCEPTED", "REJECTED", "COMPLETED", "CANCELLED"])
+    .default("PENDING"),
   urgency: z.enum(["ROUTINE", "URGENT", "EMERGENCY"]).default("ROUTINE"),
   priority_level: z.number().min(1).max(10).optional(),
-})
-.refine(
+});
+
+export const ReferralSchema = ReferralBaseSchema.refine(
   // Ensure either referred_to_doctor_id or external_doctor_name is provided
   (data) => {
     return !!data.referred_to_doctor_id || !!data.external_doctor_name;
   },
   {
-    message: "You must select an internal doctor or provide external doctor information",
+    message:
+      "You must select an internal doctor or provide external doctor information",
     path: ["referred_to_doctor_id"], // Show error on this field
   }
 );
 
 // Type representing the schema
 export type ReferralFormValues = z.infer<typeof ReferralSchema>;
-
- 

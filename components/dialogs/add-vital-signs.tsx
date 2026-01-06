@@ -44,7 +44,7 @@ export const AddVitalSigns = ({
     resolver: zodResolver(VitalSignsSchema),
     defaultValues: {
       patient_id: patientId,
-      medical_id: medicalId,
+      medical_id: medicalId ? Number(medicalId) : undefined,
       body_temperature: undefined,
       heartRate: undefined,
       systolic: undefined,
@@ -81,12 +81,15 @@ export const AddVitalSigns = ({
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             className="text-xs sm:text-sm font-mono uppercase tracking-wide bg-gray-900/60 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/30 hover:text-emerald-200 transition-all duration-300 backdrop-blur-sm shadow-lg px-2 sm:px-3"
           >
-            <Plus size={18} className="text-emerald-500 mr-1 sm:mr-2 sm:w-5 sm:h-5" /> 
+            <Plus
+              size={18}
+              className="text-emerald-500 mr-1 sm:mr-2 sm:w-5 sm:h-5"
+            />
             <span className="hidden sm:inline">Add Vital Signs</span>
             <span className="sm:hidden">Add Vitals</span>
           </Button>
@@ -98,11 +101,11 @@ export const AddVitalSigns = ({
           <div className="absolute top-0 right-0 w-6 h-6 sm:w-10 sm:h-10 border-t-2 border-r-2 border-emerald-500/70 rounded-tr-xl"></div>
           <div className="absolute bottom-0 left-0 w-6 h-6 sm:w-10 sm:h-10 border-b-2 border-l-2 border-emerald-500/70 rounded-bl-xl"></div>
           <div className="absolute bottom-0 right-0 w-6 h-6 sm:w-10 sm:h-10 border-b-2 border-r-2 border-emerald-500/70 rounded-br-xl"></div>
-          
+
           {/* Ambient glow effects - responsive */}
           <div className="absolute -top-3 right-6 w-20 h-20 sm:-top-5 sm:right-10 sm:w-36 sm:h-36 bg-emerald-300/15 rounded-full blur-2xl sm:blur-3xl"></div>
           <div className="absolute -bottom-3 left-6 w-16 h-16 sm:-bottom-5 sm:left-10 sm:w-32 sm:h-32 bg-emerald-200/10 rounded-full blur-xl sm:blur-2xl"></div>
-          
+
           {/* Scrollable container */}
           <div className="max-h-[80vh] sm:max-h-[75vh] remove-scrollbar overflow-y-auto scrollbar-thin scrollbar-thumb-emerald-500/50 scrollbar-track-gray-800/50 pr-2">
             <DialogHeader className="relative z-10 pb-4 sm:pb-6">
@@ -209,9 +212,9 @@ export const AddVitalSigns = ({
 
                 {/* Submit Button - Sticky at bottom */}
                 <div className="sticky bottom-0 bg-gray-900/95 backdrop-blur-sm pt-4 mt-6 border-t border-emerald-500/20">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading} 
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
                     className="w-full bg-gradient-to-b from-emerald-500/70 to-emerald-900/70 border border-emerald-500/40 text-white font-mono uppercase tracking-wider hover:from-emerald-400/70 hover:to-emerald-800/70 transition-all duration-300 disabled:opacity-50 py-2 sm:py-3 text-sm sm:text-base"
                   >
                     {isLoading ? "Submitting..." : "Submit"}
@@ -226,10 +229,8 @@ export const AddVitalSigns = ({
   );
 };
 
-
-
-
-{/* 
+{
+  /* 
 "use client";
 
 import { addVitalSigns } from "@/app/actions/appointment";
@@ -429,4 +430,5 @@ export const AddVitalSigns = ({
   );
 };
 
-*/}
+*/
+}

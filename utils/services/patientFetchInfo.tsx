@@ -17,14 +17,11 @@ const initializeMonthlyData = () => {
   const this_year = new Date().getFullYear();
 
   // Create an array for all 12 months instead of just up to the current month
-  const months = Array.from(
-    { length: 12 },
-    (_, index) => ({
-      name: format(new Date(this_year, index), "MMM"),
-      appointment: 0,
-      completed: 0,
-    })
-  );
+  const months = Array.from({ length: 12 }, (_, index) => ({
+    name: format(new Date(this_year, index), "MMM"),
+    appointment: 0,
+    completed: 0,
+  }));
   return months;
 };
 
@@ -42,7 +39,8 @@ export const processAppointments = async (appointments: Appointment[]) => {
       // Only count appointments from the current year
       if (
         appointmentDate >= startOfYear(new Date()) &&
-        appointmentDate <= endOfMonth(new Date(new Date().getFullYear(), 11, 31))
+        appointmentDate <=
+          endOfMonth(new Date(new Date().getFullYear(), 11, 31))
       ) {
         // Make sure we don't access an index beyond the array bounds
         if (monthIndex >= 0 && monthIndex < monthlyData.length) {
@@ -95,7 +93,12 @@ export async function getPatientDashboardStatistics(id: string) {
     });
 
     if (!data) {
-      return { success: false, message: "Patient data not found", status: 200, data: null };
+      return {
+        success: false,
+        message: "Patient data not found",
+        status: 200,
+        data: null,
+      };
     }
 
     const appointments = await db.appointment.findMany({
@@ -132,20 +135,27 @@ export async function getPatientDashboardStatistics(id: string) {
       orderBy: { appointment_date: "desc" },
     });
 
-    const { appointmentCounts, monthlyData } = await processAppointments(appointments);
+    const { appointmentCounts, monthlyData } =
+      await processAppointments(appointments);
 
     const last5Records = appointments.slice(0, 5);
 
     const today = daysOfWeek[new Date().getDay()];
 
     const availableDoctor = await db.doctor.findMany({
-      select: { id: true, name: true, specialization: true, img: true, working_days: true },
-      where :{
-        working_days:{
-          some:{day: {
-            equals:today,
-            mode: "insensitive",
-            
+      select: {
+        id: true,
+        name: true,
+        specialization: true,
+        img: true,
+        working_days: true,
+      },
+      where: {
+        working_days: {
+          some: {
+            day: {
+              equals: today,
+              mode: "insensitive",
             },
           },
         },
@@ -171,6 +181,15 @@ export async function getPatientDashboardStatistics(id: string) {
 
 export async function getPatientById(id: string) {
   try {
+    if (!id) {
+      return {
+        success: false,
+        message: "Patient ID is required",
+        status: 400,
+        data: null,
+      };
+    }
+
     const patient = await db.patient.findUnique({
       where: { id },
     });
@@ -307,5 +326,3 @@ export async function getAllPatients({
     return { success: false, message: "Internal Server Error", status: 500 };
   }
 }
-
-

@@ -3,17 +3,18 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { scrubPHI } from "./utils/phi-scrubber";
 
 Sentry.init({
-  dsn: "https://fff5a5d4966f4395708bbfe53b246e31@o4508956540796928.ingest.de.sentry.io/4509106327846992",
+  dsn: "https://74d93eec6fb6294cc43b9afb20c137d3@o4510622828068864.ingest.de.sentry.io/4510622850416720",
 
   // Add optional integrations for additional features
-  integrations: [
-    Sentry.replayIntegration(),
-  ],
+  integrations: [Sentry.replayIntegration()],
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
   tracesSampleRate: 1,
+  // Enable logs to be sent to Sentry
+  enableLogs: true,
 
   // Define how likely Replay events are sampled.
   // This sets the sample rate to be 10%. You may want this to be 100% while
@@ -23,6 +24,76 @@ Sentry.init({
   // Define how likely Replay events are sampled when an error occurs.
   replaysOnErrorSampleRate: 1.0,
 
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
+  // Disable PII to maintain HIPAA/DPA compliance
+  sendDefaultPii: false,
+
+  // Use beforeSend to scrub PHI from client error reports
+  beforeSend(event) {
+    // Remove user email, IP, and other PII
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.ip_address;
+      delete event.user.username;
+    }
+
+    // Scrub PHI from the event message
+    if (event.message) {
+      event.message = scrubPHI(event.message);
+    }
+
+    // Scrub PHI from exception values
+    if (event.exception && event.exception.values) {
+      event.exception.values.forEach((value) => {
+        if (value.value) {
+          value.value = scrubPHI(value.value);
+        }
+        // Scrub stack frames
+        if (value.stacktrace && value.stacktrace.frames) {
+          value.stacktrace.frames.forEach((frame) => {
+            if (frame.vars) {
+              Object.keys(frame.vars).forEach((key) => {
+                if (typeof frame.vars![key] === "string") {
+                  frame.vars![key] = scrubPHI(frame.vars![key] as string);
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Scrub breadcrumbs
+    if (event.breadcrumbs) {
+      event.breadcrumbs.forEach((breadcrumb) => {
+        if (breadcrumb.message) {
+          breadcrumb.message = scrubPHI(breadcrumb.message);
+        }
+        if (breadcrumb.data) {
+          Object.keys(breadcrumb.data).forEach((key) => {
+            if (typeof breadcrumb.data![key] === "string") {
+              breadcrumb.data![key] = scrubPHI(breadcrumb.data![key] as string);
+            }
+          });
+        }
+      });
+    }
+
+    // Scrub contexts (e.g. user, extra)
+    if (event.contexts) {
+      Object.keys(event.contexts).forEach((ctxKey) => {
+        const ctx = event.contexts![ctxKey];
+        if (ctx && typeof ctx === "object") {
+          Object.keys(ctx).forEach((key) => {
+            if (typeof (ctx as any)[key] === "string") {
+              (ctx as any)[key] = scrubPHI((ctx as any)[key]);
+            }
+          });
+        }
+      });
+    }
+
+    return event;
+  },
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
