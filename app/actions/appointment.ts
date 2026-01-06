@@ -99,7 +99,7 @@ export async function appointmentAction(
           emailData
         );
 
-        console.log(`${status} email sent successfully to ${patientEmail}`);
+        console.log(`${status} email sent successfully`);
       } catch (emailError) {
         console.error(`Failed to send ${status} email:`, emailError);
         // Don't fail the entire operation if email fails
@@ -226,7 +226,13 @@ export async function addVitalSigns(
       return { success: false, msg: "Unauthorized" };
     }
 
-    const validatedData = VitalSignsSchema.parse(data);
+    const validatedDataResult = VitalSignsSchema.safeParse(data);
+
+    if (!validatedDataResult.success) {
+      return { success: false, msg: "Invalid vital signs data" };
+    }
+
+    const validatedData = validatedDataResult.data;
 
     let medicalRecord = null;
 
@@ -254,7 +260,7 @@ export async function addVitalSigns(
       msg: "Vital signs added successfully",
     };
   } catch (error) {
-    console.log(error);
+    console.error("Error adding vital signs");
     return { success: false, msg: "Internal Server Error" };
   }
 }

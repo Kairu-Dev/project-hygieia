@@ -58,8 +58,8 @@ export const PatientFormSchema = z.object({
         // Format with + prefix if not already present
         return phone.startsWith("+") ? phone : `+${digitsOnly}`;
       } catch (error) {
-        console.error("Encryption failed:", error);
-        throw new Error("Encryption failed");
+        console.error("Phone normalization failed:", error);
+        throw new Error("Phone normalization failed");
       }
     }),
   relation: z.enum(["mother", "father", "husband", "wife", "other"], {
