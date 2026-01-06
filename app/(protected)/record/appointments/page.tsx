@@ -12,7 +12,7 @@ import { checkRole, getRole } from "@/utils/roles";
 import { getPatientAppointments } from "@/utils/services/appointment";
 import { DATA_LIMIT } from "@/utils/setting";
 import { auth } from "@clerk/nextjs/server";
-import { PriorityLevel } from "@prisma/client";
+import { AppointmentStatus, PriorityLevel } from "@prisma/client";
 import { formatDate } from "date-fns";
 import {
   AlertCircle,
@@ -68,7 +68,7 @@ interface DataProps {
   doctor_id: string;
   appointment_date: Date;
   time: string;
-  status: any;
+  status: AppointmentStatus;
   type: string;
   priority_level: PriorityLevel;
   priority_score: number;
@@ -151,17 +151,9 @@ const Appointments = async (props: {
     queryId = id; // Nurses see all or filtered by id
   }
 
-  console.log("Final Query ID:", queryId);
-  console.log("Advanced Search Params:", {
-    q: searchQuery,
-    from: fromQuery,
-    doctor: doctorQuery,
-    status: statusQuery,
-    priority: priorityQuery,
-    date: dateQuery,
-    time: timeQuery,
-    type: typeQuery,
-  });
+  // Logs removed for privacy
+  // console.log("Final Query ID:", queryId);
+  // console.log("Advanced Search Params:", { ... });
 
   // Build filters object for the API
   const filters = {
@@ -179,16 +171,25 @@ const Appointments = async (props: {
     Object.entries(filters).filter(([_, value]) => value && value.trim() !== "")
   );
 
-  // Call the API with all parameters
-  const response = await getPatientAppointments({
-    page,
-    search: searchQuery, // General search query
-    id: queryId!,
-    filters: cleanFilters, // Pass cleaned filters
-  });
+  // Check for queryId before making the call
+  if (!queryId) {
+    // Handle case where queryId is undefined (e.g. log error or return empty state)
+    // For now, we can render empty or handle gracefully
+    console.error("Query ID is undefined, skipping API call.");
+  }
 
-  console.log("API Response:", response);
-  console.log("Data Length:", response?.data?.length);
+  // Call the API with all parameters
+  const response = queryId
+    ? await getPatientAppointments({
+        page,
+        search: searchQuery, // General search query
+        id: queryId,
+        filters: cleanFilters, // Pass cleaned filters
+      })
+    : { data: [], totalPages: 0, totalRecord: 0, currentPage: 1 };
+
+  // console.log("API Response:", response);
+  // console.log("Data Length:", response?.data?.length);
 
   const data = response.data || [];
   const totalPages = response.totalPages || 0;

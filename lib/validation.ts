@@ -53,9 +53,14 @@ export const PatientFormSchema = z.object({
     )
     .transform((phone) => {
       // Normalize format by removing non-digits for storage
-      const digitsOnly = phone.replace(/\D/g, "");
-      // Format with + prefix if not already present
-      return phone.startsWith("+") ? phone : `+${digitsOnly}`;
+      try {
+        const digitsOnly = phone.replace(/\D/g, "");
+        // Format with + prefix if not already present
+        return phone.startsWith("+") ? phone : `+${digitsOnly}`;
+      } catch (error) {
+        console.error("Encryption failed:", error);
+        throw new Error("Encryption failed");
+      }
     }),
   relation: z.enum(["mother", "father", "husband", "wife", "other"], {
     message: "Relations with contact person required",
@@ -99,6 +104,7 @@ const PriorityAssessmentSchema = z.object({
 });
 
 export const AppointmentSchema = z.object({
+  patient_id: z.string().min(1, "Patient ID is required"),
   doctor_id: z.string().min(1, "Select physician"),
   type: z.string().min(1, "Select type of appointment"),
   appointment_date: z.string().min(1, "Select appointment date"),
@@ -234,7 +240,7 @@ export const StaffSchema = z.object({
 
 export const VitalSignsSchema = z.object({
   patient_id: z.string(),
-  medical_id: z.string(),
+  medical_id: z.coerce.number(),
   body_temperature: z.coerce.number({
     message: "Enter recorded body temperature",
   }),

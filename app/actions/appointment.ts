@@ -1,6 +1,7 @@
 "use server";
 
 import { VitalSignsFormData } from "@/components/dialogs/add-vital-signs";
+import { z } from "zod";
 import db from "@/lib/db";
 import {
   AppointmentSchema,
@@ -42,7 +43,7 @@ type AppointmentActionResponse =
       appointment: AppointmentWithRelations;
     }
   | {
-      error: any;
+      error: unknown;
       success: false;
       msg: string;
     };
@@ -120,7 +121,9 @@ export async function appointmentAction(
   }
 }
 
-export async function createNewAppointment(data: any) {
+export async function createNewAppointment(
+  data: z.infer<typeof AppointmentSchema>
+) {
   try {
     const { userId } = await auth();
 
@@ -132,10 +135,7 @@ export async function createNewAppointment(data: any) {
     const validatedData = AppointmentSchema.safeParse(data);
 
     if (!validatedData.success) {
-      console.error(
-        "Validation failed:",
-        validatedData.error.flatten().fieldErrors
-      );
+      console.error("Validation failed");
       return { success: false, msg: "Invalid data" };
     }
 
@@ -261,6 +261,14 @@ export async function addVitalSigns(
 
 export async function createNewReferral(formData: any) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, message: "Unauthorized" };
+    }
+
+    // Optional: Add specific role check if needed, e.g. checkRole("DOCTOR")
+    // For now, ensuring user is authenticated is the baseline requirement.
+
     // Validate form data
     const validatedFields = ReferralSchema.safeParse(formData);
 
@@ -371,6 +379,10 @@ export async function updateReferralStatus(
   feedbackOrNotes?: string
 ) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, message: "Unauthorized" };
+    }
     const updatedReferral = await db.referral.update({
       where: { id: referralId },
       data: {

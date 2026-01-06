@@ -36,16 +36,60 @@ Sentry.init({
       delete event.user.username;
     }
 
-    // Scrub PHI using robust utility
+    // Scrub PHI from the event message
     if (event.message) {
       event.message = scrubPHI(event.message);
     }
 
-    if (event.exception?.values) {
-      event.exception.values = event.exception.values.map((exception) => ({
-        ...exception,
-        value: exception.value ? scrubPHI(exception.value) : exception.value,
-      }));
+    // Scrub PHI from exception values
+    if (event.exception && event.exception.values) {
+      event.exception.values.forEach((value) => {
+        if (value.value) {
+          value.value = scrubPHI(value.value);
+        }
+        // Scrub stack frames
+        if (value.stacktrace && value.stacktrace.frames) {
+          value.stacktrace.frames.forEach((frame) => {
+            if (frame.vars) {
+              Object.keys(frame.vars).forEach((key) => {
+                if (typeof frame.vars![key] === "string") {
+                  frame.vars![key] = scrubPHI(frame.vars![key] as string);
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Scrub breadcrumbs
+    if (event.breadcrumbs) {
+      event.breadcrumbs.forEach((breadcrumb) => {
+        if (breadcrumb.message) {
+          breadcrumb.message = scrubPHI(breadcrumb.message);
+        }
+        if (breadcrumb.data) {
+          Object.keys(breadcrumb.data).forEach((key) => {
+            if (typeof breadcrumb.data![key] === "string") {
+              breadcrumb.data![key] = scrubPHI(breadcrumb.data![key] as string);
+            }
+          });
+        }
+      });
+    }
+
+    // Scrub contexts (e.g. user, extra)
+    if (event.contexts) {
+      Object.keys(event.contexts).forEach((ctxKey) => {
+        const ctx = event.contexts![ctxKey];
+        if (ctx && typeof ctx === "object") {
+          Object.keys(ctx).forEach((key) => {
+            if (typeof (ctx as any)[key] === "string") {
+              (ctx as any)[key] = scrubPHI((ctx as any)[key]);
+            }
+          });
+        }
+      });
     }
 
     return event;

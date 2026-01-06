@@ -35,6 +35,19 @@ interface CreateDoctorInput {
 
 export async function createNewDoctor(data: CreateDoctorInput) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: true, message: "Unauthorized" };
+    }
+
+    const role = await checkRole("ADMIN");
+    if (!role) {
+      return {
+        success: false,
+        error: true,
+        message: "Forbidden: Admin access required",
+      };
+    }
     const values = DoctorSchema.safeParse(data);
 
     const workingDaysValues = WorkingDaysSchema.safeParse(data.work_schedule);
@@ -286,6 +299,15 @@ interface CreateServiceInput {
 
 export async function addNewService(data: CreateServiceInput) {
   try {
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, error: true, msg: "Unauthorized" };
+    }
+
+    const isAdmin = await checkRole("ADMIN");
+    if (!isAdmin) {
+      return { success: false, error: true, msg: "Forbidden" };
+    }
     const isValidData = ServicesSchema.safeParse(data);
 
     if (!isValidData.success) {
