@@ -55,10 +55,9 @@ export const PatientFormSchema = z.object({
       // Normalize format by removing non-digits for storage
       try {
         const digitsOnly = phone.replace(/\D/g, "");
-        // Format with + prefix if not already present
-        return phone.startsWith("+") ? phone : `+${digitsOnly}`;
+        // Format with + prefix
+        return `+${digitsOnly}`;
       } catch (error) {
-        console.error("Phone normalization failed:", error);
         throw new Error("Phone normalization failed");
       }
     }),

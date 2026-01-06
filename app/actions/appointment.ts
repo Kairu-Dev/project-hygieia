@@ -45,7 +45,7 @@ type AppointmentActionResponse =
       appointment: AppointmentWithRelations;
     }
   | {
-      error: unknown;
+      error?: unknown;
       success: false;
       msg: string;
     };
@@ -114,11 +114,11 @@ export async function appointmentAction(
       appointment: updatedAppointment,
     };
   } catch (error) {
-    console.error("Error updating appointment:", error);
+    const errorId = crypto.randomUUID();
+    console.error(`Error updating appointment (Error ID: ${errorId})`);
     return {
       success: false,
       msg: "Failed to update appointment status.",
-      error: error,
     };
   }
 }
