@@ -6,6 +6,7 @@ import crypto from "crypto";
 import db from "@/lib/db";
 import {
   AppointmentSchema,
+  ReferralBaseSchema,
   ReferralSchema,
   VitalSignsSchema,
 } from "@/lib/validation";
@@ -266,7 +267,24 @@ export async function addVitalSigns(
   }
 }
 
-export async function createNewReferral(formData: any) {
+// Extended schema for server action input
+const CreateReferralSchema = ReferralBaseSchema.extend({
+  patient_id: z.string().min(1, "Patient ID is required"),
+  related_medical_record_id: z.string().optional(),
+}).refine(
+  (data) => {
+    return !!data.referred_to_doctor_id || !!data.external_doctor_name;
+  },
+  {
+    message:
+      "You must select an internal doctor or provide external doctor information",
+    path: ["referred_to_doctor_id"],
+  }
+);
+
+type NewReferralInput = z.infer<typeof CreateReferralSchema>;
+
+export async function createNewReferral(formData: NewReferralInput) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -277,7 +295,7 @@ export async function createNewReferral(formData: any) {
     // For now, ensuring user is authenticated is the baseline requirement.
 
     // Validate form data
-    const validatedFields = ReferralSchema.safeParse(formData);
+    const validatedFields = CreateReferralSchema.safeParse(formData);
 
     if (!validatedFields.success) {
       return {
@@ -296,7 +314,7 @@ export async function createNewReferral(formData: any) {
 
         // Patient information
         patient: {
-          connect: { id: formData.patient_id },
+          connect: { id: data.patient_id },
         },
 
         // Referral source
@@ -351,12 +369,12 @@ export async function createNewReferral(formData: any) {
     });
 
     // If there's a related medical record, update it
-    if (formData.related_medical_record_id) {
+    if (data.related_medical_record_id) {
       await db.referral.update({
         where: { id: referral.id },
         data: {
           related_medical_record: {
-            connect: { id: parseInt(formData.related_medical_record_id) },
+            connect: { id: parseInt(data.related_medical_record_id) },
           },
         },
       });
