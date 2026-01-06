@@ -371,7 +371,7 @@ export async function createNewReferral(formData: any) {
       referral,
     };
   } catch (error) {
-    console.error("Error creating referral:", error);
+    console.error("Error creating referral - details hidden for privacy");
     return {
       success: false,
       message: "Failed to create referral",
@@ -413,7 +413,9 @@ export async function updateReferralStatus(
       referral: updatedReferral,
     };
   } catch (error) {
-    console.error("Error updating referral status:", error);
+    console.error(
+      "Error updating referral status - details hidden for privacy"
+    );
     return {
       success: false,
       message: "Failed to update referral status",

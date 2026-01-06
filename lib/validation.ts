@@ -163,7 +163,20 @@ export const DoctorSchema = z.object({
 });
 
 // Helper function to check password strength in real-time (for UI feedback)
-export const checkPasswordStrength = (password: string) => {
+export const checkPasswordStrength = (
+  password: string
+): {
+  checks: {
+    length: boolean;
+    lowercase: boolean;
+    uppercase: boolean;
+    number: boolean;
+    special: boolean;
+  };
+  strength: "weak" | "medium" | "strong";
+  isValid: boolean;
+  score: number;
+} => {
   const checks = {
     length: password.length >= 8,
     lowercase: /[a-z]/.test(password),
